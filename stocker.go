@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -69,10 +70,33 @@ func getStockTimeSeries(function, symbol, interval, key string) {
 	}
 
 	if val, ok := ts.Ts[ts.MetaData.LastRefreshed]; ok {
-		fmt.Println(ts.MetaData.Symbol, ", ", ts.MetaData.LastRefreshed, ":", getPrettyString(val))
+		fmt.Println("Symbol:", ts.MetaData.Symbol)
+		fmt.Println("Last Refreshed:", ts.MetaData.LastRefreshed)
+		fmt.Println("Time Series:", getPrettyString(val))
+		avg, _ := getOhlcAverage(val)
+		fmt.Println("OHLC Average:", avg)
 	} else {
 		fmt.Println(ts)
 	}
+}
+
+func getOhlcAverage(ts TimeSeries) (float64, error) {
+	var avg, o, h, l, c float64
+	var err error
+
+	if o, err = strconv.ParseFloat(ts.Open, 64); err != nil {
+		// Error
+	} else if h, err = strconv.ParseFloat(ts.High, 64); err != nil {
+		// Error
+	} else if l, err = strconv.ParseFloat(ts.Low, 64); err != nil {
+		// Error
+	} else if c, err = strconv.ParseFloat(ts.Close, 64); err != nil {
+		// Error
+	} else {
+		avg = (o + h + l + c) / 4.
+	}
+
+	return avg, err
 }
 
 func getPrettyString(v interface{}) string {
