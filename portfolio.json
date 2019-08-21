@@ -1,0 +1,15 @@
+{
+	"assets": [
+		{
+			"symbol": "MSFT",
+			"%portfolio": 50.00,
+			"quantity": 0
+		},
+		{
+			"symbol": "AAPL",
+			"%portfolio": 50.00,
+			"quantity": 0
+		}
+	],
+	"cash": 10000.00
+}

@@ -14,6 +14,17 @@ const (
 	ALPHA_VANTAGE_API_STOCK_TIME_SERIES = "https://www.alphavantage.co/query?"
 )
 
+type Asset struct {
+	Symbol    string  `json:"symbol"`
+	Portfolio float64 `json:"%portfolio"`
+	Quantity  int64   `json:"quantity"`
+}
+
+type Portfolio struct {
+	Assets []Asset `json:"assets"`
+	Cash   float64 `json:"cash"`
+}
+
 type TsMetaData struct {
 	Information   string `json:"1. Information"`
 	Symbol        string `json:"2. Symbol"`
@@ -37,15 +48,37 @@ type TsIntraday struct {
 }
 
 func main() {
+	portfolio := flag.String("portfolio", "", "portfolio file")
 	symbol := flag.String("symbol", "", "stock symbol")
 	apiKey := flag.String("apiKey", "", "Alpha Vantage API key")
 	flag.Parse()
 
-	if len(*symbol) == 0 || len(*apiKey) == 0 {
+	if len(*apiKey) == 0 {
 		flag.PrintDefaults()
-	} else {
+	} else if len(*symbol) > 0 {
 		getStockTimeSeries("TIME_SERIES_INTRADAY", *symbol, "5min", *apiKey)
+	} else if len(*portfolio) > 0 {
+		p, _ := getPortfolio(*portfolio)
+		for _, asset := range p.Assets {
+			getStockTimeSeries("TIME_SERIES_INTRADAY", asset.Symbol, "5min", *apiKey)
+		}
+	} else {
+		flag.PrintDefaults()
 	}
+}
+
+func getPortfolio(filename string) (*Portfolio, error) {
+	portfolio := Portfolio{}
+	file, err := ioutil.ReadFile(filename)
+	if err == nil {
+		if err = json.Unmarshal([]byte(file), &portfolio); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Fatal(err)
+	}
+
+	return &portfolio, err
 }
 
 func getStockTimeSeries(function, symbol, interval, key string) {
