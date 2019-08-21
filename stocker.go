@@ -11,13 +11,15 @@ import (
 )
 
 const (
-	ALPHA_VANTAGE_API_STOCK_TIME_SERIES = "https://www.alphavantage.co/query?"
+	ALPHA_VANTAGE_API = "https://www.alphavantage.co/query?"
 )
 
 type Asset struct {
-	Symbol    string  `json:"symbol"`
-	Portfolio float64 `json:"%portfolio"`
-	Quantity  int64   `json:"quantity"`
+	Symbol      string  `json:"symbol"`
+	ohlcAverage float64 `json:"avgPrice"`
+	MarketValue float64 `json:"marketValue"`
+	Allocation  float64 `json:"%portfolio"`
+	Quantity    int64   `json:"quantity"`
 }
 
 type Portfolio struct {
@@ -56,11 +58,45 @@ func main() {
 	if len(*apiKey) == 0 {
 		flag.PrintDefaults()
 	} else if len(*symbol) > 0 {
-		getStockTimeSeries("TIME_SERIES_INTRADAY", *symbol, "5min", *apiKey)
+		getStockTimeSeries(*symbol, *apiKey)
 	} else if len(*portfolio) > 0 {
+		getCurrencyExchangeRate("USD", "CAD", *apiKey)
 		p, _ := getPortfolio(*portfolio)
-		for _, asset := range p.Assets {
-			getStockTimeSeries("TIME_SERIES_INTRADAY", asset.Symbol, "5min", *apiKey)
+		allocation := float64(0)
+		for i, asset := range p.Assets {
+			p.Assets[i].ohlcAverage, _ = getStockTimeSeries(asset.Symbol, *apiKey)
+
+			if p.Assets[i].Quantity > 0 {
+				p.Cash += float64(p.Assets[i].Quantity) * p.Assets[i].ohlcAverage
+				p.Assets[i].Quantity = 0
+			}
+
+			if asset.Allocation >= 0 {
+				allocation += asset.Allocation
+			}
+		}
+
+		if allocation == 100 {
+			cash := p.Cash
+			// Rebalance portfolio
+			for i, asset := range p.Assets {
+				cashAllowance := float64(0)
+				if asset.Allocation > 0 {
+					cashAllowance = p.Cash * asset.Allocation / 100
+				}
+
+				if asset.ohlcAverage > 0 {
+					p.Assets[i].Quantity = int64(cashAllowance / asset.ohlcAverage)
+					p.Assets[i].MarketValue = float64(p.Assets[i].Quantity) * asset.ohlcAverage
+					cash -= p.Assets[i].MarketValue
+				}
+			}
+
+			p.Cash = cash
+
+			fmt.Println("Balanced Portfolio:", getPrettyString(p))
+		} else {
+			log.Fatal("Portfolio asset allocations do not add up to 100%")
 		}
 	} else {
 		flag.PrintDefaults()
@@ -81,16 +117,41 @@ func getPortfolio(filename string) (*Portfolio, error) {
 	return &portfolio, err
 }
 
-func getStockTimeSeries(function, symbol, interval, key string) {
-	api := ALPHA_VANTAGE_API_STOCK_TIME_SERIES + "function=" + function + "&symbol=" + symbol + "&interval=" + interval + "&apikey=" + key
+func getCurrencyExchangeRate(from, to, key string) (float64, error) {
+	function := "CURRENCY_EXCHANGE_RATE"
+	api := ALPHA_VANTAGE_API + "function=" + function + "&from_currency=" + from + "&to_currency=" + to + "&apikey=" + key
 
 	res, err := http.Get(api)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	jsonBody, err := ioutil.ReadAll(res.Body)
 	defer res.Body.Close()
+	jsonBody, err := ioutil.ReadAll(res.Body)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(string(jsonBody))
+
+	return -1, err
+}
+
+func getStockTimeSeries(symbol, key string) (float64, error) {
+	var avg float64
+
+	function := "TIME_SERIES_INTRADAY"
+	interval := "5min"
+	api := ALPHA_VANTAGE_API + "function=" + function + "&symbol=" + symbol + "&interval=" + interval + "&apikey=" + key
+
+	res, err := http.Get(api)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer res.Body.Close()
+	jsonBody, err := ioutil.ReadAll(res.Body)
 
 	if err != nil {
 		log.Fatal(err)
@@ -106,11 +167,13 @@ func getStockTimeSeries(function, symbol, interval, key string) {
 		fmt.Println("Symbol:", ts.MetaData.Symbol)
 		fmt.Println("Last Refreshed:", ts.MetaData.LastRefreshed)
 		fmt.Println("Time Series:", getPrettyString(val))
-		avg, _ := getOhlcAverage(val)
+		avg, _ = getOhlcAverage(val)
 		fmt.Println("OHLC Average:", avg)
 	} else {
 		fmt.Println(ts)
 	}
+
+	return avg, err
 }
 
 func getOhlcAverage(ts TimeSeries) (float64, error) {
