@@ -8,16 +8,16 @@ import (
 
 func TestCreateSymbolSearchUrl(t *testing.T) {
 	url, err := createSymbolSearchUrl("", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, "", url)
+	assert.Nil(t, err)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=&apikey=", url)
 
 	url, err = createSymbolSearchUrl("AAPL", "")
-	assert.NotNil(t, err)
-	assert.Equal(t, "", url)
+	assert.Nil(t, err)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=AAPL&apikey=", url)
 
 	url, err = createSymbolSearchUrl("", "test")
-	assert.NotNil(t, err)
-	assert.Equal(t, "", url)
+	assert.Nil(t, err)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=&apikey=test", url)
 
 	url, err = createSymbolSearchUrl("AAPL", "test")
 	assert.Nil(t, err)
@@ -27,9 +27,11 @@ func TestCreateSymbolSearchUrl(t *testing.T) {
 func TestSymbolSearch(t *testing.T) {
 	info, err := SymbolSearch("", "test")
 	assert.NotNil(t, err)
+	assert.Nil(t, info)
 
 	info, err = SymbolSearch("AAPL", "test")
 	assert.Nil(t, err)
+	assert.NotNil(t, info)
 	assert.Equal(t, "AAPL", info.Symbol)
 	assert.Equal(t, "Apple Inc.", info.Name)
 	assert.Equal(t, "Equity", info.Type)

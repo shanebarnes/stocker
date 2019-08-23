@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	av "github.com/shanebarnes/stocker/alphavantage"
 )
 
 const (
@@ -118,23 +120,8 @@ func getPortfolio(filename string) (*Portfolio, error) {
 }
 
 func getCurrencyExchangeRate(from, to, key string) (float64, error) {
-	function := "CURRENCY_EXCHANGE_RATE"
-	api := ALPHA_VANTAGE_API + "function=" + function + "&from_currency=" + from + "&to_currency=" + to + "&apikey=" + key
-
-	res, err := http.Get(api)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer res.Body.Close()
-	jsonBody, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(string(jsonBody))
-
+	rate, err := av.CurrencyExchangeRate(from, to, key)
+	fmt.Println(rate)
 	return -1, err
 }
 

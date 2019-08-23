@@ -36,17 +36,11 @@ func createSymbolSearchUrl(symbol, apiKey string) (string, error) {
 	var url bytes.Buffer
 	var err error
 
-	if len(symbol) == 0 {
-		err = errors.New("createSymbolSearch: symbol is empty")
-	} else if len(apiKey) == 0 {
-		err = errors.New("createSymbolSearch: apiKey is empty")
-	} else {
-		var tpl *template.Template
-		t := tplSymbolSearch{Keywords: symbol, ApiKey: apiKey}
+	var tpl *template.Template
+	t := tplSymbolSearch{Keywords: symbol, ApiKey: apiKey}
 
-		if tpl, err = template.New("api").Parse(apiSymbolSearch); err == nil {
-			err = tpl.Execute(&url, t)
-		}
+	if tpl, err = template.New("api").Parse(apiSymbolSearch); err == nil {
+		err = tpl.Execute(&url, t)
 	}
 
 	return url.String(), err
@@ -58,8 +52,8 @@ func SymbolSearch(symbol, apiKey string) (*SymbolSearchMatch, error) {
 	url, err := createSymbolSearchUrl(symbol, apiKey)
 	if err == nil {
 		var body []byte
-		search := symbolSearch{}
 		if body, err = ApiGetResponseBody(url); err == nil {
+			search := symbolSearch{}
 			if err = json.Unmarshal(body, &search); err == nil {
 				if len(search.BestMatches) > 0 {
 					// TODO: check that match score is 1.000?
