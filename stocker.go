@@ -6,14 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 
 	av "github.com/shanebarnes/stocker/alphavantage"
-)
-
-const (
-	ALPHA_VANTAGE_API = "https://www.alphavantage.co/query?"
 )
 
 type Asset struct {
@@ -29,28 +24,6 @@ type Portfolio struct {
 	Cash   float64 `json:"cash"`
 }
 
-type TsMetaData struct {
-	Information   string `json:"1. Information"`
-	Symbol        string `json:"2. Symbol"`
-	LastRefreshed string `json:"3. Last Refreshed"`
-	Interval      string `json:"4. Interval"`
-	OutputSize    string `json:"5. Output Size"`
-	TimeZone      string `json:"6. TimeZone'`
-}
-
-type TimeSeries struct {
-	Open   string `json:"1. open"`
-	High   string `json:"2. high"`
-	Low    string `json:"3. low"`
-	Close  string `json:"4. close"`
-	Volume string `json:"5. volume"`
-}
-
-type TsIntraday struct {
-	MetaData   TsMetaData            `json:"Meta Data"`
-	Ts         map[string]TimeSeries `json:"Time Series (5min)"`
-}
-
 func main() {
 	portfolio := flag.String("portfolio", "", "portfolio file")
 	symbol := flag.String("symbol", "", "stock symbol")
@@ -62,7 +35,7 @@ func main() {
 	} else if len(*symbol) > 0 {
 		getStockTimeSeries(*symbol, *apiKey)
 	} else if len(*portfolio) > 0 {
-		getCurrencyExchangeRate("USD", "CAD", *apiKey)
+		//GetCurrencyExchangeRate("USD", "CAD", *apiKey)
 		p, _ := getPortfolio(*portfolio)
 		allocation := float64(0)
 		for i, asset := range p.Assets {
@@ -119,37 +92,10 @@ func getPortfolio(filename string) (*Portfolio, error) {
 	return &portfolio, err
 }
 
-func getCurrencyExchangeRate(from, to, key string) (float64, error) {
-	rate, err := av.CurrencyExchangeRate(from, to, key)
-	fmt.Println(rate)
-	return -1, err
-}
-
 func getStockTimeSeries(symbol, key string) (float64, error) {
 	var avg float64
 
-	function := "TIME_SERIES_INTRADAY"
-	interval := "5min"
-	api := ALPHA_VANTAGE_API + "function=" + function + "&symbol=" + symbol + "&interval=" + interval + "&apikey=" + key
-
-	res, err := http.Get(api)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer res.Body.Close()
-	jsonBody, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ts := TsIntraday{}
-	err = json.Unmarshal([]byte(jsonBody), &ts)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	ts, err := av.GetTimeSeriesIntraday(symbol, key)
 	if val, ok := ts.Ts[ts.MetaData.LastRefreshed]; ok {
 		fmt.Println("Symbol:", ts.MetaData.Symbol)
 		fmt.Println("Last Refreshed:", ts.MetaData.LastRefreshed)
@@ -163,7 +109,7 @@ func getStockTimeSeries(symbol, key string) (float64, error) {
 	return avg, err
 }
 
-func getOhlcAverage(ts TimeSeries) (float64, error) {
+func getOhlcAverage(ts av.TimeSeries) (float64, error) {
 	var avg, o, h, l, c float64
 	var err error
 

@@ -24,12 +24,12 @@ func TestCreateSymbolSearchUrl(t *testing.T) {
 	assert.Equal(t, "https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=AAPL&apikey=test", url)
 }
 
-func TestSymbolSearch(t *testing.T) {
-	info, err := SymbolSearch("", "test")
+func TestGetSymbolSearch(t *testing.T) {
+	info, err := GetSymbolSearch("", "test")
 	assert.NotNil(t, err)
 	assert.Nil(t, info)
 
-	info, err = SymbolSearch("AAPL", "test")
+	info, err = GetSymbolSearch("AAPL", "test")
 	assert.Nil(t, err)
 	assert.NotNil(t, info)
 	assert.Equal(t, "AAPL", info.Symbol)

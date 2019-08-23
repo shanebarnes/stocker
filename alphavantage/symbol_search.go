@@ -46,7 +46,7 @@ func createSymbolSearchUrl(symbol, apiKey string) (string, error) {
 	return url.String(), err
 }
 
-func SymbolSearch(symbol, apiKey string) (*SymbolSearchMatch, error) {
+func GetSymbolSearch(symbol, apiKey string) (*SymbolSearchMatch, error) {
 	var match *SymbolSearchMatch
 
 	url, err := createSymbolSearchUrl(symbol, apiKey)

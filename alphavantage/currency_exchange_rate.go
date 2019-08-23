@@ -16,7 +16,7 @@ type tplCurrencyExchangeRate struct {
 	ApiKey       string
 }
 
-type ExchangeRateInfo struct {
+type ExchangeRate struct {
 	FromCode      string `json:"1. From_Currency Code"`
 	FromName      string `json:"2. From_Currency Name"`
 	ToCode        string `json:"3. To_Currency Code"`
@@ -28,8 +28,8 @@ type ExchangeRateInfo struct {
 	AskPrice      string `json:"9. Ask Price"`
 }
 
-type ExchangeRate struct {
-	Rate ExchangeRateInfo `json:"Realtime Currency Exchange Rate"`
+type exchangeRate struct {
+	Rate ExchangeRate `json:"Realtime Currency Exchange Rate"`
 }
 
 func createCurrencyExchangeRateUrl(fromCurrency, toCurrency, apiKey string) (string, error) {
@@ -46,16 +46,16 @@ func createCurrencyExchangeRateUrl(fromCurrency, toCurrency, apiKey string) (str
 	return url.String(), err
 }
 
-func CurrencyExchangeRate(fromCurrency, toCurrency, apiKey string) (*ExchangeRateInfo, error) {
-	var rate *ExchangeRateInfo
+func GetCurrencyExchangeRate(fromCurrency, toCurrency, apiKey string) (*ExchangeRate, error) {
+	var rate *ExchangeRate
 
 	url, err := createCurrencyExchangeRateUrl(fromCurrency, toCurrency, apiKey)
 	if err == nil {
 		var body []byte
 		if body, err = ApiGetResponseBody(url); err == nil {
-			cer := ExchangeRate{}
-			if err = json.Unmarshal(body, &cer); err == nil {
-				rate = &cer.Rate
+			er := exchangeRate{}
+			if err = json.Unmarshal(body, &er); err == nil {
+				rate = &er.Rate
 			}
 		}
 	}

@@ -24,15 +24,30 @@ func TestCreateCurrencyExchangeRateUrl(t *testing.T) {
 	assert.Equal(t, "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=CAD&apikey=test", url)
 }
 
-func TestCurrencyExchangeRate(t *testing.T) {
-	rate, err := CurrencyExchangeRate("", "", "")
+func TestGetCurrencyExchangeRate(t *testing.T) {
+	rate, err := GetCurrencyExchangeRate("", "", "")
 	assert.Nil(t, err)
 	assert.NotNil(t, rate)
+	assert.Equal(t, "", rate.FromCode)
+	assert.Equal(t, "", rate.FromName)
+	assert.Equal(t, "", rate.ToCode)
+	assert.Equal(t, "", rate.ToName)
+	assert.Equal(t, "", rate.ExchangeRate)
+	assert.Equal(t, "", rate.LastRefreshed)
+	assert.Equal(t, "", rate.Timezone)
+	assert.Equal(t, "", rate.BidPrice)
+	assert.Equal(t, "", rate.AskPrice)
 
-	rate, err = CurrencyExchangeRate("USD", "CAD", "test")
+	rate, err = GetCurrencyExchangeRate("USD", "CAD", "test")
 	assert.Nil(t, err)
 	assert.NotNil(t, rate)
-	//assert.Equal(t, "USD", rate.FromCode)
-	//assert.Equal(t, "United States Dollar", rate.FromName)
-	//assert.Equal(t, "CAD", rate.ToCode)
+	assert.NotEqual(t, "", rate.FromCode)
+	assert.NotEqual(t, "", rate.FromName)
+	assert.NotEqual(t, "", rate.ToCode)
+	assert.NotEqual(t, "", rate.ToName)
+	assert.NotEqual(t, "", rate.ExchangeRate)
+	assert.NotEqual(t, "", rate.LastRefreshed)
+	assert.NotEqual(t, "", rate.Timezone)
+	assert.NotEqual(t, "", rate.BidPrice)
+	assert.NotEqual(t, "", rate.AskPrice)
 }
