@@ -3,11 +3,13 @@ package alphavantage
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"strconv"
 	"text/template"
 )
 
 const (
-	apiTimeSeriesIntraday = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={{.Symbol}}&interval={{.Interval}}apikey={{.ApiKey}}`
+	apiTimeSeriesIntraday = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={{.Symbol}}&interval={{.Interval}}&apikey={{.ApiKey}}`
 )
 
 type tplTimeSeriesIntraday struct {
@@ -52,6 +54,25 @@ func createTimeSeriesIntradayUrl(symbol, apiKey string) (string, error) {
 	return url.String(), err
 }
 
+func getOhlcAverage(ts TimeSeries) (float64, error) {
+	var avg, o, h, l, c float64
+	var err error
+
+	if o, err = strconv.ParseFloat(ts.Open, 64); err != nil {
+		// Error
+	} else if h, err = strconv.ParseFloat(ts.High, 64); err != nil {
+		// Error
+	} else if l, err = strconv.ParseFloat(ts.Low, 64); err != nil {
+		// Error
+	} else if c, err = strconv.ParseFloat(ts.Close, 64); err != nil {
+		// Error
+	} else {
+		avg = (o + h + l + c) / 4.
+	}
+
+	return avg, err
+}
+
 func GetTimeSeriesIntraday(symbol, apiKey string) (*TsIntraday, error) {
 	var tsIntraday *TsIntraday
 
@@ -67,4 +88,17 @@ func GetTimeSeriesIntraday(symbol, apiKey string) (*TsIntraday, error) {
 	}
 
 	return tsIntraday, err
+}
+
+func GetStockTimeSeriesIntradayAverage(symbol, key string) (float64, error) {
+	var avg float64
+
+	ts, err := GetTimeSeriesIntraday(symbol, key)
+	if val, ok := ts.Ts[ts.MetaData.LastRefreshed]; ok {
+		avg, err = getOhlcAverage(val)
+	} else {
+		err = errors.New("Time series data unavailable for: " + ts.MetaData.LastRefreshed)
+	}
+
+	return avg, err
 }

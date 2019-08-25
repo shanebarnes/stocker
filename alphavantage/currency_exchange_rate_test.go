@@ -24,8 +24,8 @@ func TestCreateCurrencyExchangeRateUrl(t *testing.T) {
 	assert.Equal(t, "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=CAD&apikey=test", url)
 }
 
-func TestGetCurrencyExchangeRate(t *testing.T) {
-	rate, err := GetCurrencyExchangeRate("", "", "")
+func TestGetCurrencyExchangeRateInfo(t *testing.T) {
+	rate, err := GetCurrencyExchangeRateInfo("", "", "")
 	assert.Nil(t, err)
 	assert.NotNil(t, rate)
 	assert.Equal(t, "", rate.FromCode)
@@ -38,7 +38,7 @@ func TestGetCurrencyExchangeRate(t *testing.T) {
 	assert.Equal(t, "", rate.BidPrice)
 	assert.Equal(t, "", rate.AskPrice)
 
-	rate, err = GetCurrencyExchangeRate("USD", "CAD", "test")
+	rate, err = GetCurrencyExchangeRateInfo("USD", "CAD", "test")
 	assert.Nil(t, err)
 	assert.NotNil(t, rate)
 	assert.NotEqual(t, "", rate.FromCode)

@@ -3,6 +3,7 @@ package alphavantage
 import (
 	"bytes"
 	"encoding/json"
+	"strconv"
 	"text/template"
 )
 
@@ -61,4 +62,15 @@ func GetSymbolQuote(symbol, apiKey string) (*SymbolQuote, error) {
 	}
 
 	return quote, err
+}
+
+func GetSymbolQuotePrice(symbol, apiKey string) (float64, error) {
+	var price float64
+
+	quote, err := GetSymbolQuote(symbol, apiKey)
+	if err == nil {
+		price, err = strconv.ParseFloat(quote.Price, 64)
+	}
+
+	return price, err
 }

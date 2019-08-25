@@ -9,17 +9,17 @@ import (
 func TestCreateTimeSeriesIntradayUrl(t *testing.T) {
 	url, err := createTimeSeriesIntradayUrl("", "")
 	assert.Nil(t, err)
-	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=&interval=5minapikey=", url)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=&interval=5min&apikey=", url)
 
 	url, err = createTimeSeriesIntradayUrl("AAPL", "")
 	assert.Nil(t, err)
-	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=AAPL&interval=5minapikey=", url)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=AAPL&interval=5min&apikey=", url)
 
 	url, err = createTimeSeriesIntradayUrl("", "test")
 	assert.Nil(t, err)
-	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=&interval=5minapikey=test", url)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=&interval=5min&apikey=test", url)
 
 	url, err = createTimeSeriesIntradayUrl("AAPL", "test")
 	assert.Nil(t, err)
-	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=AAPL&interval=5minapikey=test", url)
+	assert.Equal(t, "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=AAPL&interval=5min&apikey=test", url)
 }

@@ -1,0 +1,30 @@
+{
+    "assets": {
+        "source": {
+            "AAPL": {
+                "quantity": 10
+            },
+            "CAD": {
+                "type": "Currency",
+                "quantity": 10000.00
+            },
+            "USD": {
+                "type": "Currency",
+                "quantity": 10000.00
+            }
+        },
+        "target": {
+            "CAD": {
+                "type": "Currency",
+                "allocation": 20.00
+            },
+            "MSFT": {
+                "allocation": 70.00
+            },
+            "USD": {
+                "type": "Currency",
+                "allocation": 10.00
+            }
+        }
+    }
+}

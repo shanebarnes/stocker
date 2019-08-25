@@ -3,129 +3,47 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"strconv"
+	"os"
 
 	av "github.com/shanebarnes/stocker/alphavantage"
+	log "github.com/sirupsen/logrus"
 )
 
-type Asset struct {
-	Symbol      string  `json:"symbol"`
-	ohlcAverage float64 `json:"avgPrice"`
-	MarketValue float64 `json:"marketValue"`
-	Allocation  float64 `json:"%portfolio"`
-	Quantity    int64   `json:"quantity"`
-}
+func init() {
+	format := new(log.TextFormatter)
+	format.TimestampFormat = "2006-01-02T15:04:05.000Z07:00"
+	format.FullTimestamp = true
 
-type Portfolio struct {
-	Assets []Asset `json:"assets"`
-	Cash   float64 `json:"cash"`
+	log.SetFormatter(format)
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {
-	portfolio := flag.String("portfolio", "", "portfolio file")
-	symbol := flag.String("symbol", "", "stock symbol")
+	// TODO: Add a flag for the number of API calls permitted per minute
 	apiKey := flag.String("apiKey", "", "Alpha Vantage API key")
+	currency := flag.String("currency", "USD", "Currency")
+	debug := flag.Bool("debug", true, "Debug mode")
+	help := flag.Bool("help", false, "Display help information")
+	portfolio := flag.String("portfolio", "", "Portfolio file containing source and target assets")
 	flag.Parse()
 
-	if len(*apiKey) == 0 {
+	if *debug {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	if *help {
 		flag.PrintDefaults()
-	} else if len(*symbol) > 0 {
-		getStockTimeSeries(*symbol, *apiKey)
+	} else if len(*apiKey) == 0 {
+		flag.PrintDefaults()
 	} else if len(*portfolio) > 0 {
-		//GetCurrencyExchangeRate("USD", "CAD", *apiKey)
-		p, _ := getPortfolio(*portfolio)
-		allocation := float64(0)
-		for i, asset := range p.Assets {
-			p.Assets[i].ohlcAverage, _ = getStockTimeSeries(asset.Symbol, *apiKey)
-
-			if p.Assets[i].Quantity > 0 {
-				p.Cash += float64(p.Assets[i].Quantity) * p.Assets[i].ohlcAverage
-				p.Assets[i].Quantity = 0
-			}
-
-			if asset.Allocation >= 0 {
-				allocation += asset.Allocation
-			}
-		}
-
-		if allocation == 100 {
-			cash := p.Cash
-			// Rebalance portfolio
-			for i, asset := range p.Assets {
-				cashAllowance := float64(0)
-				if asset.Allocation > 0 {
-					cashAllowance = p.Cash * asset.Allocation / 100
-				}
-
-				if asset.ohlcAverage > 0 {
-					p.Assets[i].Quantity = int64(cashAllowance / asset.ohlcAverage)
-					p.Assets[i].MarketValue = float64(p.Assets[i].Quantity) * asset.ohlcAverage
-					cash -= p.Assets[i].MarketValue
-				}
-			}
-
-			p.Cash = cash
-
-			fmt.Println("Balanced Portfolio:", getPrettyString(p))
-		} else {
-			log.Fatal("Portfolio asset allocations do not add up to 100%")
-		}
+		log.Warn("Rebalancing requires making Alpha Vantage API calls")
+		log.Warn("Only ", av.apiCallsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
+		p, _ := NewPortfolio(*portfolio, *apiKey, *currency)
+		p.Rebalance()
 	} else {
 		flag.PrintDefaults()
 	}
-}
-
-func getPortfolio(filename string) (*Portfolio, error) {
-	portfolio := Portfolio{}
-	file, err := ioutil.ReadFile(filename)
-	if err == nil {
-		if err = json.Unmarshal([]byte(file), &portfolio); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		log.Fatal(err)
-	}
-
-	return &portfolio, err
-}
-
-func getStockTimeSeries(symbol, key string) (float64, error) {
-	var avg float64
-
-	ts, err := av.GetTimeSeriesIntraday(symbol, key)
-	if val, ok := ts.Ts[ts.MetaData.LastRefreshed]; ok {
-		fmt.Println("Symbol:", ts.MetaData.Symbol)
-		fmt.Println("Last Refreshed:", ts.MetaData.LastRefreshed)
-		fmt.Println("Time Series:", getPrettyString(val))
-		avg, _ = getOhlcAverage(val)
-		fmt.Println("OHLC Average:", avg)
-	} else {
-		fmt.Println(ts)
-	}
-
-	return avg, err
-}
-
-func getOhlcAverage(ts av.TimeSeries) (float64, error) {
-	var avg, o, h, l, c float64
-	var err error
-
-	if o, err = strconv.ParseFloat(ts.Open, 64); err != nil {
-		// Error
-	} else if h, err = strconv.ParseFloat(ts.High, 64); err != nil {
-		// Error
-	} else if l, err = strconv.ParseFloat(ts.Low, 64); err != nil {
-		// Error
-	} else if c, err = strconv.ParseFloat(ts.Close, 64); err != nil {
-		// Error
-	} else {
-		avg = (o + h + l + c) / 4.
-	}
-
-	return avg, err
 }
 
 func getPrettyString(v interface{}) string {

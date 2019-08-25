@@ -3,6 +3,7 @@ package alphavantage
 import (
 	"bytes"
 	"encoding/json"
+	"strconv"
 	"text/template"
 )
 
@@ -46,7 +47,18 @@ func createCurrencyExchangeRateUrl(fromCurrency, toCurrency, apiKey string) (str
 	return url.String(), err
 }
 
-func GetCurrencyExchangeRate(fromCurrency, toCurrency, apiKey string) (*ExchangeRate, error) {
+func GetCurrencyExchangeRate(fromCurrency, toCurrency, apiKey string) (float64, error) {
+	var xr float64
+
+	xri, err := GetCurrencyExchangeRateInfo(fromCurrency, toCurrency, apiKey)
+	if err == nil {
+		xr, err = strconv.ParseFloat(xri.ExchangeRate, 64)
+	}
+
+	return xr, err
+}
+
+func GetCurrencyExchangeRateInfo(fromCurrency, toCurrency, apiKey string) (*ExchangeRate, error) {
 	var rate *ExchangeRate
 
 	url, err := createCurrencyExchangeRateUrl(fromCurrency, toCurrency, apiKey)
