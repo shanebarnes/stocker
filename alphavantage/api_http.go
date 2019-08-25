@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	apiCallsPerMinLimit = 5 // Free API key only allows for 5 API calls per minute
-	apiCallInterval = time.Minute / apiCallsPerMinLimit + time.Second * 3 // Add 3 additional seconds to prevent API call failures
+	ApiCallsPerMinLimit = 5 // Free API key only allows for 5 API calls per minute
+	apiCallInterval = time.Minute / ApiCallsPerMinLimit + time.Second * 3 // Add 3 additional seconds to prevent API call failures
 )
 
 var lastApiCall = time.Now().Add( -1 *apiCallInterval)

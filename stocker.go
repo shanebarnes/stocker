@@ -38,7 +38,7 @@ func main() {
 		flag.PrintDefaults()
 	} else if len(*portfolio) > 0 {
 		log.Warn("Rebalancing requires making Alpha Vantage API calls")
-		log.Warn("Only ", av.apiCallsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
+		log.Warn("Only ", av.ApiCallsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
 		p, _ := NewPortfolio(*portfolio, *apiKey, *currency)
 		p.Rebalance()
 	} else {
