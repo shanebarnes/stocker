@@ -60,6 +60,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 	var err error
 	allocation := fp.NewF(0)
 
+	log.Info("Re-allocating source assets to match target allocations")
 	// Create new target cash asset if it does not already exist
 	cash, exists := p.Assets.Target[p.currency]
 	if exists {
@@ -249,6 +250,7 @@ func (p *Portfolio) liquidate() (fp.Fixed, error) {
 	var err error
 	var cash fp.Fixed
 
+	log.Info("Liquidating source assets into ", p.currency, " funds")
 	for symbol, asset := range p.Assets.Source {
 		if err = p.initializeAsset(symbol, &asset); err == nil {
 			// cash = cash + asset.Price * asset.Fxr * float64(asset.Qty)
@@ -321,15 +323,37 @@ func NewPortfolio(filename, apiKey, currency string) (*Portfolio, error) {
 }
 
 func (p *Portfolio) Rebalance() error {
-	log.Info("Liquidating source assets into ", p.currency, " funds")
-	cash, err := p.liquidate()
-	if err == nil {
-		log.Info("Re-allocating source assets to match target allocations")
-		err = p.allocate(cash)
+	var err error
+	var cash fp.Fixed
+
+	if err = p.validate(); err != nil {
+		log.Fatal("Validation failed:", err)
+	} else if cash, err = p.liquidate(); err != nil {
+		log.Fatal("Liquidation failed:", err)
+	} else if err = p.allocate(cash); err != nil {
+		log.Fatal("Allocation failed:", err)
 	}
 
-	if err != nil {
-		log.Fatal(err)
+	return err
+}
+
+func (p *Portfolio) validate() error {
+	var err error
+
+	log.Info("Validating source assets")
+	for symbol, asset := range p.Assets.Source {
+		if err = p.initializeAsset(symbol, &asset); err != nil {
+			break
+		}
+	}
+
+	if err == nil {
+		log.Info("Validating target assets")
+		for symbol, asset := range p.Assets.Target {
+			if err = p.initializeAsset(symbol, &asset); err != nil {
+				break
+			}
+		}
 	}
 
 	return err
