@@ -25,7 +25,7 @@ func TestCreateSymbolQuoteUrl(t *testing.T) {
 }
 
 func TestGetSymbolQuote(t *testing.T) {
-	quote, err := GetSymbolQuote("", "test")
+	quote, err := GetSymbolQuote("", ApiGetKeyFromEnv())
 	assert.Nil(t, err)
 	assert.NotNil(t, quote)
 	assert.Equal(t, "", quote.Symbol)
@@ -39,7 +39,7 @@ func TestGetSymbolQuote(t *testing.T) {
 	assert.Equal(t, "", quote.Change)
 	assert.Equal(t, "", quote.ChangePercent)
 
-	quote, err = GetSymbolQuote("AAPL", "test")
+	quote, err = GetSymbolQuote("AAPL", ApiGetKeyFromEnv())
 	assert.Nil(t, err)
 	assert.NotNil(t, quote)
 	assert.NotEqual(t, "", quote.Symbol)

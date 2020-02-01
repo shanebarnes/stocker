@@ -27,7 +27,7 @@ type fpAsset struct {
 type Asset struct {
 	Alloc       string  `json:"allocation"`
 	Currency    string  `json:"currency"`
-	fp          fpAsset `json:"-"`
+	fp          fpAsset
 	Fxr         string  `json:"exchangeRate"`
 	MarketValue string  `json:"marketValue"`
 	Name        string  `json:"name"`
@@ -48,12 +48,12 @@ type QuoteCache  map[string]*av.SymbolQuote
 type SymbolCache map[string]*av.SymbolSearchMatch
 
 type Portfolio struct {
-	apiKey      string         `json:"-"`
+	apiKey      string
 	Assets      AssetRebalance `json:"assets"`
-	currency    string         `json:"-"`
-	fxrCache    FxrCache       `json:"-"`
-	quoteCache  QuoteCache     `json:"-"`
-	symbolCache SymbolCache    `json:"-"`
+	currency    string
+	fxrCache    FxrCache
+	quoteCache  QuoteCache
+	symbolCache SymbolCache
 }
 
 func (p *Portfolio) allocate(funds fp.Fixed) error {

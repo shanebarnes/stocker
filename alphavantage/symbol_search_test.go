@@ -25,11 +25,11 @@ func TestCreateSymbolSearchUrl(t *testing.T) {
 }
 
 func TestGetSymbolSearch(t *testing.T) {
-	info, err := GetSymbolSearch("", "test")
+	info, err := GetSymbolSearch("", ApiGetKeyFromEnv())
 	assert.NotNil(t, err)
 	assert.Nil(t, info)
 
-	info, err = GetSymbolSearch("AAPL", "test")
+	info, err = GetSymbolSearch("AAPL", ApiGetKeyFromEnv())
 	assert.Nil(t, err)
 	assert.NotNil(t, info)
 	assert.Equal(t, "AAPL", info.Symbol)

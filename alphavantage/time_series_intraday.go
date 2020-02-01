@@ -24,7 +24,7 @@ type TimeSeriesMetaData struct {
 	LastRefreshed string `json:"3. Last Refreshed"`
 	Interval      string `json:"4. Interval"`
 	OutputSize    string `json:"5. Output Size"`
-	TimeZone      string `json:"6. TimeZone'`
+	TimeZone      string `json:"6. TimeZone"`
 }
 
 type TimeSeries struct {

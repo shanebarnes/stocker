@@ -6,8 +6,9 @@ Rebalance your finanical assets with realtime stock market data acquired on dema
 ```shell
 $ git clone https://github.com/shanebarnes/stocker.git
 $ cd stocker
+$ go vet -v ./...  # Optional
+$ export AV_API_KEY=<your_api_key>; go test -v ./... # Optional, takes some time with free API Key due to API call limit
 $ go build -v
-$ go test -v ./...
 ```
 
 ## Examples
@@ -16,6 +17,7 @@ Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.
 
 ```shell
 $ ./stocker -apiKey <your_api_key> -portfolio examples/portfolio.json
+$ export AV_API_KEY=<your_api_key>; ./stocker -portfolio examples/portfolio.json # Alternatively, load API key from environment
 ```
 
 The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples/portfolio.json) contains source and target assets.
