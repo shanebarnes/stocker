@@ -21,7 +21,14 @@ type fpAsset struct {
 	Fxr         fp.Fixed
 	MarketValue fp.Fixed
 	Price       fp.Fixed
+	PriceDiff   fp.Fixed
 	Qty         fp.Fixed
+	QtyDiff     fp.Fixed
+}
+
+type order struct {
+	MarketValue string `json:"marketValue"`
+	Qty         string `json:"quantity"`
 }
 
 type Asset struct {
@@ -31,11 +38,13 @@ type Asset struct {
 	Fxr         string  `json:"exchangeRate"`
 	MarketValue string  `json:"marketValue"`
 	Name        string  `json:"name"`
+	Order       order   `json:"order",omitempty`
 	Price       string  `json:"price"`
 	Qty         string  `json:"quantity"`
 	Type        string  `json:"type"`
 }
 
+// TODO: Convert to struct and include total market value field
 type AssetGroup map[string]Asset
 
 type AssetRebalance struct {
@@ -96,6 +105,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 					qty := cash.fp.Qty.Mul(asset.fp.Alloc)
 					qty = qty.Div(fp.NewF(100))
 					qty = qty.Div(asset.fp.Price.Mul(asset.fp.Fxr))
+					qty = qty.Round(0)
 					asset.fp.Qty = fp.NewI(qty.Int(), 0)
 
 					// asset.MarketValue = math.Round(asset.Qty * asset.Price * asset.Fxr)
@@ -122,6 +132,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		cash.fp.Alloc = cash.fp.Alloc.Round(4)
 		cash.fp.Qty = cashLeft
 		p.Assets.Target[p.currency] = cash
+		p.diffAssets(&p.Assets.Source, &p.Assets.Target)
 		p.copyAssetFixedToStrings(&p.Assets.Target)
 		log.Info("target portfolio:", getPrettyString(p.Assets.Target))
 	} else {
@@ -132,13 +143,46 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 }
 
 func (p *Portfolio) copyAssetFixedToStrings(group *AssetGroup) {
-	for i, asset := range *group {
+	for symbol, asset := range *group {
 		asset.Alloc       = asset.fp.Alloc.StringN(4) + "%"
 		asset.Fxr         = asset.fp.Fxr.StringN(4)
 		asset.MarketValue = asset.fp.MarketValue.StringN(2) + p.currency
 		asset.Price       = asset.fp.Price.StringN(2)
 		asset.Qty         = asset.fp.Qty.StringN(2)
-		(*group)[i]       = asset
+		(*group)[symbol]  = asset
+	}
+}
+
+// Find order quantities (currency/share buys/sells)
+func (p *Portfolio) diffAssets(source, target *AssetGroup) {
+	// Add any symbols in source assets that are not found in target assets
+	for symbol, srcAsset := range *source {
+		if _, ok := (*target)[symbol]; !ok {
+			srcAsset.fp.QtyDiff = srcAsset.fp.Qty.Mul(fp.NewF(-1))
+			srcAsset.fp.Alloc = fp.NewF(0)
+			srcAsset.fp.MarketValue = fp.NewF(0)
+			srcAsset.fp.Qty = fp.NewF(0)
+			(*target)[symbol] = srcAsset
+		}
+	}
+
+	// Find difference between symbols common to source and target assets
+	for symbol, tgtAsset := range *target {
+		if srcAsset, ok := (*source)[symbol]; ok {
+			tgtAsset.fp.QtyDiff = tgtAsset.fp.Qty.Sub(srcAsset.fp.Qty)
+		} else {
+			tgtAsset.fp.QtyDiff = tgtAsset.fp.Qty
+		}
+		tgtAsset.fp.PriceDiff = tgtAsset.fp.QtyDiff.Mul(tgtAsset.fp.Price).Mul(tgtAsset.fp.Fxr)
+
+		sign := ""
+		if tgtAsset.fp.QtyDiff.Sign() != -1 {
+			sign = "+"
+		}
+
+		tgtAsset.Order.MarketValue = sign + tgtAsset.fp.PriceDiff.StringN(2) + p.currency
+		tgtAsset.Order.Qty = sign + tgtAsset.fp.QtyDiff.StringN(2)
+		(*target)[symbol] = tgtAsset
 	}
 }
 

@@ -22,10 +22,10 @@ Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.
 
 ```shell
 $ # Pass API key on command line
-$ ./stocker -apiKey <your_api_key> -portfolio examples/portfolio.json
+$ ./stocker -apiKey <your_api_key> -rebalance examples/portfolio.json
 $
 $ # Alternatively, load API key from environment
-$ export AV_API_KEY=<your_api_key>; ./stocker -portfolio examples/portfolio.json
+$ export AV_API_KEY=<your_api_key>; ./stocker -rebalance examples/portfolio.json
 ```
 
 The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples/portfolio.json) contains source and target assets.
@@ -66,86 +66,138 @@ The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples
 Here is what the asset rebalancing output will look like for the sample portfolio.
 
 ```shell
-WARN[2019-08-26T22:38:46.647-04:00] Rebalancing requires making Alpha Vantage API calls
-WARN[2019-08-26T22:38:46.648-04:00] Only 5 API calls to Alpha Vantage will be performed each minute
-INFO[2019-08-26T22:38:46.648-04:00] Liquidating source assets into CAD funds
-DEBU[2019-08-26T22:38:46.648-04:00] USD: searching for symbol information
-DEBU[2019-08-26T22:38:46.648-04:00] USD: searching for exchange rate from USD to CAD
-DEBU[2019-08-26T22:38:47.038-04:00] AAPL: searching for symbol information
-DEBU[2019-08-26T22:39:01.851-04:00] AAPL: searching for symbol quote information
-DEBU[2019-08-26T22:39:16.706-04:00] AAPL: searching for exchange rate from USD to CAD
-DEBU[2019-08-26T22:39:16.706-04:00] USD: found cached exchange rate to CAD: 1.3239
-DEBU[2019-08-26T22:39:16.706-04:00] CAD: searching for symbol information
-INFO[2019-08-26T22:39:16.706-04:00] source portfolio:{
+WARN[2020-02-01T18:28:57.998-05:00] Rebalancing requires making Alpha Vantage API calls
+WARN[2020-02-01T18:28:57.998-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
+INFO[2020-02-01T18:28:57.999-05:00] Validating source assets
+DEBU[2020-02-01T18:28:57.999-05:00] AAPL: searching for symbol information
+DEBU[2020-02-01T18:28:58.507-05:00] AAPL: searching for symbol quote information
+DEBU[2020-02-01T18:29:13.357-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:29:13.357-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:29:28.065-05:00] USD: searching for symbol information
+INFO[2020-02-01T18:29:28.065-05:00] Validating target assets
+DEBU[2020-02-01T18:29:28.065-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:29:28.065-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:29:28.065-05:00] CAD: found cached exchange rate to USD: 0.7554
+DEBU[2020-02-01T18:29:28.065-05:00] MSFT: searching for symbol information
+DEBU[2020-02-01T18:29:43.140-05:00] MSFT: searching for symbol quote information
+DEBU[2020-02-01T18:29:58.091-05:00] USD: searching for symbol information
+INFO[2020-02-01T18:29:58.091-05:00] Liquidating source assets into USD funds
+DEBU[2020-02-01T18:29:58.091-05:00] AAPL: searching for symbol information
+DEBU[2020-02-01T18:29:58.091-05:00] AAPL: found cached symbol information
+DEBU[2020-02-01T18:29:58.091-05:00] AAPL: searching for symbol quote information
+DEBU[2020-02-01T18:29:58.091-05:00] AAPL: found cached symbol quote
+DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:29:58.091-05:00] CAD: found cached exchange rate to USD: 0.7554
+DEBU[2020-02-01T18:29:58.091-05:00] USD: searching for symbol information
+INFO[2020-02-01T18:29:58.091-05:00] source portfolio:{
   "AAPL": {
-    "allocation": "10.5253%",
+    "allocation": "14.9890%",
     "currency": "USD",
-    "exchangeRate": "1.3239",
-    "marketValue": "2733.72CAD",
+    "exchangeRate": "1.0000",
+    "marketValue": "3095.10USD",
     "name": "Apple Inc.",
-    "price": "206.49",
+    "order": {
+      "marketValue": "",
+      "quantity": ""
+    },
+    "price": "309.51",
     "quantity": "10.00",
     "type": "Equity"
   },
   "CAD": {
-    "allocation": "38.5019%",
+    "allocation": "36.5827%",
     "currency": "CAD",
-    "exchangeRate": "1.0000",
-    "marketValue": "10000.00CAD",
+    "exchangeRate": "0.7554",
+    "marketValue": "7554.00USD",
     "name": "CAD",
+    "order": {
+      "marketValue": "",
+      "quantity": ""
+    },
     "price": "1.00",
     "quantity": "10000.00",
     "type": "currency"
   },
   "USD": {
-    "allocation": "50.9727%",
+    "allocation": "48.4282%",
     "currency": "USD",
-    "exchangeRate": "1.3239",
-    "marketValue": "13239.00CAD",
+    "exchangeRate": "1.0000",
+    "marketValue": "10000.00USD",
     "name": "USD",
+    "order": {
+      "marketValue": "",
+      "quantity": ""
+    },
     "price": "1.00",
     "quantity": "10000.00",
     "type": "currency"
   }
 }
-INFO[2019-08-26T22:39:16.706-04:00] Re-allocating source assets to match target allocations
-DEBU[2019-08-26T22:39:16.706-04:00] MSFT: searching for symbol information
-DEBU[2019-08-26T22:39:31.864-04:00] MSFT: searching for symbol quote information
-DEBU[2019-08-26T22:39:46.754-04:00] MSFT: searching for exchange rate from USD to CAD
-DEBU[2019-08-26T22:39:46.755-04:00] USD: found cached exchange rate to CAD: 1.3239
-DEBU[2019-08-26T22:39:46.755-04:00] USD: searching for symbol information
-DEBU[2019-08-26T22:39:46.755-04:00] USD: searching for exchange rate from USD to CAD
-DEBU[2019-08-26T22:39:46.755-04:00] USD: found cached exchange rate to CAD: 1.3239
-INFO[2019-08-26T22:39:46.755-04:00] target portfolio:{
-  "CAD": {
-    "allocation": "20.2713%",
-    "currency": "CAD",
+INFO[2020-02-01T18:29:58.091-05:00] Re-allocating source assets to match target allocations
+DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:29:58.091-05:00] CAD: found cached exchange rate to USD: 0.7554
+DEBU[2020-02-01T18:29:58.091-05:00] MSFT: searching for symbol information
+DEBU[2020-02-01T18:29:58.091-05:00] MSFT: found cached symbol information
+DEBU[2020-02-01T18:29:58.091-05:00] MSFT: searching for symbol quote information
+DEBU[2020-02-01T18:29:58.091-05:00] MSFT: found cached symbol quote
+INFO[2020-02-01T18:29:58.091-05:00] target portfolio:{
+  "AAPL": {
+    "allocation": "0.0000%",
+    "currency": "USD",
     "exchangeRate": "1.0000",
-    "marketValue": "5265.00CAD",
+    "marketValue": "0.00USD",
+    "name": "Apple Inc.",
+    "order": {
+      "marketValue": "-3095.10USD",
+      "quantity": "-10.00"
+    },
+    "price": "309.51",
+    "quantity": "0.00",
+    "type": "Equity"
+  },
+  "CAD": {
+    "allocation": "19.9998%",
+    "currency": "CAD",
+    "exchangeRate": "0.7554",
+    "marketValue": "4129.77USD",
     "name": "CAD",
+    "order": {
+      "marketValue": "-3424.22USD",
+      "quantity": "-4533.00"
+    },
     "price": "1.00",
-    "quantity": "5265.00",
-    "type": "Currency"
+    "quantity": "5467.00",
+    "type": "currency"
   },
   "MSFT": {
-    "allocation": "69.7330%",
+    "allocation": "70.0735%",
     "currency": "USD",
-    "exchangeRate": "1.3239",
-    "marketValue": "18111.55CAD",
+    "exchangeRate": "1.0000",
+    "marketValue": "14469.55USD",
     "name": "Microsoft Corporation",
-    "price": "135.45",
-    "quantity": "101.00",
+    "order": {
+      "marketValue": "+14469.55USD",
+      "quantity": "+85.00"
+    },
+    "price": "170.23",
+    "quantity": "85.00",
     "type": "Equity"
   },
   "USD": {
-    "allocation": "9.9958%",
+    "allocation": "9.9267%",
     "currency": "USD",
-    "exchangeRate": "1.3239",
-    "marketValue": "2596.17CAD",
+    "exchangeRate": "1.0000",
+    "marketValue": "2049.78USD",
     "name": "USD",
+    "order": {
+      "marketValue": "-7950.22USD",
+      "quantity": "-7950.22"
+    },
     "price": "1.00",
-    "quantity": "1961.00",
-    "type": "currency"
+    "quantity": "2049.78",
+    "type": "Currency"
   }
 }
 ```

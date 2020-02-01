@@ -30,7 +30,7 @@ func main() {
 	debug := flag.Bool("debug", true, "Debug mode")
 	av.ApiRequestsPerMinLimit = *(flag.Int("requests", 5, "Maximum API requests per minute. The free API key only allows for 5 API requests per minute"))
 	help := flag.Bool("help", false, "Display help information")
-	portfolio := flag.String("portfolio", "", "Portfolio file containing source and target assets")
+	portfolio := flag.String("rebalance", "", "Portfolio file containing source assets to rebalance against target assets")
 	flag.Parse()
 
 	if *debug {
@@ -44,8 +44,9 @@ func main() {
 	} else if len(*portfolio) > 0 {
 		log.Warn("Rebalancing requires making Alpha Vantage API calls")
 		log.Warn("Only ", av.ApiRequestsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
-		p, _ := NewPortfolio(*portfolio, apiKey, *currency)
-		p.Rebalance()
+		if p, err := NewPortfolio(*portfolio, apiKey, *currency); err == nil {
+			p.Rebalance()
+		}
 	} else {
 		flag.PrintDefaults()
 	}
