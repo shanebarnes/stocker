@@ -38,7 +38,7 @@ func TestGetSymbolSearch(t *testing.T) {
 	assert.Equal(t, "United States", info.Region)
 	assert.Equal(t, "09:30", info.MarketOpen)
 	assert.Equal(t, "16:00", info.MarketClose)
-	assert.Equal(t, "UTC-04", info.Timezone)
+	assert.Contains(t, info.Timezone, "UTC-0")
 	assert.Equal(t, "USD", info.Currency)
 	assert.Equal(t, "1.0000", info.MatchScore)
 }

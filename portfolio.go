@@ -327,11 +327,11 @@ func (p *Portfolio) Rebalance() error {
 	var cash fp.Fixed
 
 	if err = p.validate(); err != nil {
-		log.Fatal("Validation failed:", err)
+		log.Fatal("Validation failed: ", err)
 	} else if cash, err = p.liquidate(); err != nil {
-		log.Fatal("Liquidation failed:", err)
+		log.Fatal("Liquidation failed: ", err)
 	} else if err = p.allocate(cash); err != nil {
-		log.Fatal("Allocation failed:", err)
+		log.Fatal("Allocation failed: ", err)
 	}
 
 	return err

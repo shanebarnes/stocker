@@ -22,12 +22,13 @@ func init() {
 }
 
 func main() {
-	// TODO: Add a flag for the number of API calls permitted per minute
+	key := flag.String("apiKey", "", "Alpha Vantage API key")
 	if len(apiKey) == 0 {
-		apiKey = *(flag.String("apiKey", "", "Alpha Vantage API key"))
+		apiKey = *key
 	}
 	currency := flag.String("currency", "USD", "Currency")
 	debug := flag.Bool("debug", true, "Debug mode")
+	av.ApiRequestsPerMinLimit = *(flag.Int("requests", 5, "Maximum API requests per minute. The free API key only allows for 5 API requests per minute"))
 	help := flag.Bool("help", false, "Display help information")
 	portfolio := flag.String("portfolio", "", "Portfolio file containing source and target assets")
 	flag.Parse()
@@ -42,7 +43,7 @@ func main() {
 		flag.PrintDefaults()
 	} else if len(*portfolio) > 0 {
 		log.Warn("Rebalancing requires making Alpha Vantage API calls")
-		log.Warn("Only ", av.ApiCallsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
+		log.Warn("Only ", av.ApiRequestsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
 		p, _ := NewPortfolio(*portfolio, apiKey, *currency)
 		p.Rebalance()
 	} else {

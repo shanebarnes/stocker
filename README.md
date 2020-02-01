@@ -6,8 +6,13 @@ Rebalance your finanical assets with realtime stock market data acquired on dema
 ```shell
 $ git clone https://github.com/shanebarnes/stocker.git
 $ cd stocker
-$ go vet -v ./...  # Optional
-$ export AV_API_KEY=<your_api_key>; go test -v ./... # Optional, takes some time with free API Key due to API call limit
+$
+$ # Optional
+$ go vet -v ./...
+$
+$ # Optional: unit tests could take a while with free API key due to API call limit
+$ export AV_API_KEY=<your_api_key>; go test -cover -v ./...
+$
 $ go build -v
 ```
 
@@ -16,8 +21,11 @@ $ go build -v
 Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.co/) API key is required. A free API key can be claimed [here](https://www.alphavantage.co/support/#api-key).
 
 ```shell
+$ # Pass API key on command line
 $ ./stocker -apiKey <your_api_key> -portfolio examples/portfolio.json
-$ export AV_API_KEY=<your_api_key>; ./stocker -portfolio examples/portfolio.json # Alternatively, load API key from environment
+$
+$ # Alternatively, load API key from environment
+$ export AV_API_KEY=<your_api_key>; ./stocker -portfolio examples/portfolio.json
 ```
 
 The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples/portfolio.json) contains source and target assets.
