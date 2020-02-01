@@ -38,7 +38,7 @@ type Asset struct {
 	Fxr         string  `json:"exchangeRate"`
 	MarketValue string  `json:"marketValue"`
 	Name        string  `json:"name"`
-	Order       order   `json:"order",omitempty`
+	Order       *order  `json:"order,omitempty"`
 	Price       string  `json:"price"`
 	Qty         string  `json:"quantity"`
 	Type        string  `json:"type"`
@@ -180,6 +180,7 @@ func (p *Portfolio) diffAssets(source, target *AssetGroup) {
 			sign = "+"
 		}
 
+		tgtAsset.Order = &order{}
 		tgtAsset.Order.MarketValue = sign + tgtAsset.fp.PriceDiff.StringN(2) + p.currency
 		tgtAsset.Order.Qty = sign + tgtAsset.fp.QtyDiff.StringN(2)
 		(*target)[symbol] = tgtAsset

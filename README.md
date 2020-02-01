@@ -66,41 +66,37 @@ The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples
 Here is what the asset rebalancing output will look like for the sample portfolio.
 
 ```shell
-WARN[2020-02-01T18:28:57.998-05:00] Rebalancing requires making Alpha Vantage API calls
-WARN[2020-02-01T18:28:57.998-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
-INFO[2020-02-01T18:28:57.999-05:00] Validating source assets
-DEBU[2020-02-01T18:28:57.999-05:00] AAPL: searching for symbol information
-DEBU[2020-02-01T18:28:58.507-05:00] AAPL: searching for symbol quote information
-DEBU[2020-02-01T18:29:13.357-05:00] CAD: searching for symbol information
-DEBU[2020-02-01T18:29:13.357-05:00] CAD: searching for exchange rate from CAD to USD
-DEBU[2020-02-01T18:29:28.065-05:00] USD: searching for symbol information
-INFO[2020-02-01T18:29:28.065-05:00] Validating target assets
-DEBU[2020-02-01T18:29:28.065-05:00] CAD: searching for symbol information
-DEBU[2020-02-01T18:29:28.065-05:00] CAD: searching for exchange rate from CAD to USD
-DEBU[2020-02-01T18:29:28.065-05:00] CAD: found cached exchange rate to USD: 0.7554
-DEBU[2020-02-01T18:29:28.065-05:00] MSFT: searching for symbol information
-DEBU[2020-02-01T18:29:43.140-05:00] MSFT: searching for symbol quote information
-DEBU[2020-02-01T18:29:58.091-05:00] USD: searching for symbol information
-INFO[2020-02-01T18:29:58.091-05:00] Liquidating source assets into USD funds
-DEBU[2020-02-01T18:29:58.091-05:00] AAPL: searching for symbol information
-DEBU[2020-02-01T18:29:58.091-05:00] AAPL: found cached symbol information
-DEBU[2020-02-01T18:29:58.091-05:00] AAPL: searching for symbol quote information
-DEBU[2020-02-01T18:29:58.091-05:00] AAPL: found cached symbol quote
-DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for symbol information
-DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for exchange rate from CAD to USD
-DEBU[2020-02-01T18:29:58.091-05:00] CAD: found cached exchange rate to USD: 0.7554
-DEBU[2020-02-01T18:29:58.091-05:00] USD: searching for symbol information
-INFO[2020-02-01T18:29:58.091-05:00] source portfolio:{
+WARN[2020-02-01T18:39:21.237-05:00] Rebalancing requires making Alpha Vantage API calls
+WARN[2020-02-01T18:39:21.237-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
+INFO[2020-02-01T18:39:21.238-05:00] Validating source assets
+DEBU[2020-02-01T18:39:21.238-05:00] AAPL: searching for symbol information
+DEBU[2020-02-01T18:39:21.687-05:00] AAPL: searching for symbol quote information
+DEBU[2020-02-01T18:39:36.300-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:39:36.300-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:39:51.294-05:00] USD: searching for symbol information
+INFO[2020-02-01T18:39:51.294-05:00] Validating target assets
+DEBU[2020-02-01T18:39:51.294-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:39:51.294-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:39:51.294-05:00] CAD: found cached exchange rate to USD: 0.7554
+DEBU[2020-02-01T18:39:51.294-05:00] MSFT: searching for symbol information
+DEBU[2020-02-01T18:40:06.376-05:00] MSFT: searching for symbol quote information
+DEBU[2020-02-01T18:40:21.317-05:00] USD: searching for symbol information
+INFO[2020-02-01T18:40:21.317-05:00] Liquidating source assets into USD funds
+DEBU[2020-02-01T18:40:21.317-05:00] AAPL: searching for symbol information
+DEBU[2020-02-01T18:40:21.317-05:00] AAPL: found cached symbol information
+DEBU[2020-02-01T18:40:21.317-05:00] AAPL: searching for symbol quote information
+DEBU[2020-02-01T18:40:21.317-05:00] AAPL: found cached symbol quote
+DEBU[2020-02-01T18:40:21.317-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:40:21.317-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:40:21.317-05:00] CAD: found cached exchange rate to USD: 0.7554
+DEBU[2020-02-01T18:40:21.317-05:00] USD: searching for symbol information
+INFO[2020-02-01T18:40:21.317-05:00] source portfolio:{
   "AAPL": {
     "allocation": "14.9890%",
     "currency": "USD",
     "exchangeRate": "1.0000",
     "marketValue": "3095.10USD",
     "name": "Apple Inc.",
-    "order": {
-      "marketValue": "",
-      "quantity": ""
-    },
     "price": "309.51",
     "quantity": "10.00",
     "type": "Equity"
@@ -111,10 +107,6 @@ INFO[2020-02-01T18:29:58.091-05:00] source portfolio:{
     "exchangeRate": "0.7554",
     "marketValue": "7554.00USD",
     "name": "CAD",
-    "order": {
-      "marketValue": "",
-      "quantity": ""
-    },
     "price": "1.00",
     "quantity": "10000.00",
     "type": "currency"
@@ -125,24 +117,20 @@ INFO[2020-02-01T18:29:58.091-05:00] source portfolio:{
     "exchangeRate": "1.0000",
     "marketValue": "10000.00USD",
     "name": "USD",
-    "order": {
-      "marketValue": "",
-      "quantity": ""
-    },
     "price": "1.00",
     "quantity": "10000.00",
     "type": "currency"
   }
 }
-INFO[2020-02-01T18:29:58.091-05:00] Re-allocating source assets to match target allocations
-DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for symbol information
-DEBU[2020-02-01T18:29:58.091-05:00] CAD: searching for exchange rate from CAD to USD
-DEBU[2020-02-01T18:29:58.091-05:00] CAD: found cached exchange rate to USD: 0.7554
-DEBU[2020-02-01T18:29:58.091-05:00] MSFT: searching for symbol information
-DEBU[2020-02-01T18:29:58.091-05:00] MSFT: found cached symbol information
-DEBU[2020-02-01T18:29:58.091-05:00] MSFT: searching for symbol quote information
-DEBU[2020-02-01T18:29:58.091-05:00] MSFT: found cached symbol quote
-INFO[2020-02-01T18:29:58.091-05:00] target portfolio:{
+INFO[2020-02-01T18:40:21.317-05:00] Re-allocating source assets to match target allocations
+DEBU[2020-02-01T18:40:21.317-05:00] CAD: searching for symbol information
+DEBU[2020-02-01T18:40:21.317-05:00] CAD: searching for exchange rate from CAD to USD
+DEBU[2020-02-01T18:40:21.318-05:00] CAD: found cached exchange rate to USD: 0.7554
+DEBU[2020-02-01T18:40:21.318-05:00] MSFT: searching for symbol information
+DEBU[2020-02-01T18:40:21.318-05:00] MSFT: found cached symbol information
+DEBU[2020-02-01T18:40:21.318-05:00] MSFT: searching for symbol quote information
+DEBU[2020-02-01T18:40:21.318-05:00] MSFT: found cached symbol quote
+INFO[2020-02-01T18:40:21.318-05:00] target portfolio:{
   "AAPL": {
     "allocation": "0.0000%",
     "currency": "USD",
