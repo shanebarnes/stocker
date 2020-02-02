@@ -29,41 +29,6 @@ $ # Alternatively, load API key from environment
 $ export AV_API_KEY=<your_api_key>; ./stocker -rebalance ../../examples/portfolio.json
 ```
 
-The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples/portfolio.json) contains source and target assets.
-
-```json
-{
-    "assets": {
-        "source": {
-            "AAPL": {
-                "quantity": "10"
-            },
-            "CAD": {
-                "type": "Currency",
-                "quantity": "10000.00"
-            },
-            "USD": {
-                "type": "Currency",
-                "quantity": "10000.00"
-            }
-        },
-        "target": {
-            "CAD": {
-                "type": "Currency",
-                "allocation": "20.00"
-            },
-            "MSFT": {
-                "allocation": "70.00"
-            },
-            "USD": {
-                "type": "Currency",
-                "allocation": "10.00"
-            }
-        }
-    }
-}
-```
-
 Here is an example of currency conversion.
 
 ```shell
