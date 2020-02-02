@@ -2,28 +2,26 @@
     "assets": {
         "source": {
             "AAPL": {
-                "quantity": "10"
+                "quantity": "25"
             },
             "CAD": {
                 "type": "Currency",
                 "quantity": "10000.00"
             },
-            "USD": {
-                "type": "Currency",
-                "quantity": "10000.00"
+            "MSFT": {
+                "quantity": "50"
             }
         },
         "target": {
+            "AMZN": {
+                "allocation": "60.00"
+            },
             "CAD": {
                 "type": "Currency",
-                "allocation": "20.00"
+                "allocation": "5.00"
             },
-            "MSFT": {
-                "allocation": "70.00"
-            },
-            "USD": {
-                "type": "Currency",
-                "allocation": "10.00"
+            "TSLA": {
+                "allocation": "35.00"
             }
         }
     }

@@ -105,17 +105,20 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 					qty := cash.fp.Qty.Mul(asset.fp.Alloc)
 					qty = qty.Div(fp.NewF(100))
 					qty = qty.Div(asset.fp.Price.Mul(asset.fp.Fxr))
-					qty = qty.Round(0)
-					asset.fp.Qty = fp.NewI(qty.Int(), 0)
+
+					// Currency quantities do not need to be integers
+					if asset.Type == typeCurrency {
+						asset.fp.Qty = qty
+					} else {
+						asset.fp.Qty = fp.NewI(qty.Int(), 0)
+					}
 
 					// asset.MarketValue = math.Round(asset.Qty * asset.Price * asset.Fxr)
 					asset.fp.MarketValue = asset.fp.Qty.Mul(asset.fp.Price.Mul(asset.fp.Fxr))
-					asset.fp.MarketValue = asset.fp.MarketValue.Round(2)
 
 					// asset.Alloc = math.Round(asset.MarketValue * 100. / cash.Qty)
 					asset.fp.Alloc = asset.fp.MarketValue.Mul(fp.NewF(100))
 					asset.fp.Alloc = asset.fp.Alloc.Div(cash.fp.Qty)
-					asset.fp.Alloc = asset.fp.Alloc.Round(4)
 
 					// cashLeft = cashLeft - asset.MarketValue
 					cashLeft = cashLeft.Sub(asset.fp.MarketValue)
@@ -129,14 +132,13 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		// cash.Alloc = math.Round(cash.MarketValue * 100. / cash.Qty)
 		cash.fp.Alloc = cash.fp.MarketValue.Mul(fp.NewF(100))
 		cash.fp.Alloc = cash.fp.Alloc.Div(cash.fp.Qty)
-		cash.fp.Alloc = cash.fp.Alloc.Round(4)
 		cash.fp.Qty = cashLeft
 		p.Assets.Target[p.currency] = cash
 		p.diffAssets(&p.Assets.Source, &p.Assets.Target)
 		p.copyAssetFixedToStrings(&p.Assets.Target)
 		log.Info("target portfolio:", getPrettyString(p.Assets.Target))
 	} else {
-		err = fmt.Errorf("Invalid portfolio allocation total: %s", allocation.StringN(2))
+		err = fmt.Errorf("Invalid portfolio allocation total: %s", allocation.Round(2).StringN(2))
 	}
 
 	return err
@@ -144,11 +146,11 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 
 func (p *Portfolio) copyAssetFixedToStrings(group *AssetGroup) {
 	for symbol, asset := range *group {
-		asset.Alloc       = asset.fp.Alloc.StringN(4) + "%"
-		asset.Fxr         = asset.fp.Fxr.StringN(4)
-		asset.MarketValue = asset.fp.MarketValue.StringN(2) + p.currency
-		asset.Price       = asset.fp.Price.StringN(2)
-		asset.Qty         = asset.fp.Qty.StringN(2)
+		asset.Alloc       = asset.fp.Alloc.Round(4).StringN(4) + "%"
+		asset.Fxr         = asset.fp.Fxr.Round(4).StringN(4)
+		asset.MarketValue = asset.fp.MarketValue.Round(2).StringN(2) + p.currency
+		asset.Price       = asset.fp.Price.Round(2).StringN(2)
+		asset.Qty         = asset.fp.Qty.Round(2).StringN(2)
 		(*group)[symbol]  = asset
 	}
 }
@@ -181,8 +183,8 @@ func (p *Portfolio) diffAssets(source, target *AssetGroup) {
 		}
 
 		tgtAsset.Order = &order{}
-		tgtAsset.Order.MarketValue = sign + tgtAsset.fp.PriceDiff.StringN(2) + p.currency
-		tgtAsset.Order.Qty = sign + tgtAsset.fp.QtyDiff.StringN(2)
+		tgtAsset.Order.MarketValue = sign + tgtAsset.fp.PriceDiff.Round(2).StringN(2) + p.currency
+		tgtAsset.Order.Qty = sign + tgtAsset.fp.QtyDiff.Round(2).StringN(2)
 		(*target)[symbol] = tgtAsset
 	}
 }
@@ -205,7 +207,7 @@ func (p *Portfolio) getExchangeRate(fromCcy string) (fp.Fixed, error) {
 	toCcyCache, exists := p.fxrCache[fromCcy]
 	if exists {
 		fxr, exists = toCcyCache[p.currency]
-		log.Debug(fromCcy, ": found cached exchange rate to ", p.currency, ": ", fxr.StringN(4))
+		log.Debug(fromCcy, ": found cached exchange rate to ", p.currency, ": ", fxr.Round(4).StringN(4))
 	} else {
 		p.fxrCache[fromCcy] = map[string]fp.Fixed{}
 	}

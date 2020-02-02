@@ -1,0 +1,16 @@
+{
+    "assets": {
+        "source": {
+            "USD": {
+                "type": "Currency",
+                "quantity": "10000.00"
+            }
+        },
+        "target": {
+            "EUR": {
+                "type": "Currency",
+                "allocation": "100.00"
+            }
+        }
+    }
+}
