@@ -23,19 +23,22 @@ func init() {
 
 func main() {
 	key := flag.String("apiKey", "", "Alpha Vantage API key")
-	if len(apiKey) == 0 {
-		apiKey = *key
-	}
 	currency := flag.String("currency", "USD", "Currency")
 	debug := flag.Bool("debug", true, "Debug mode")
-	av.ApiRequestsPerMinLimit = *(flag.Int("requests", 5, "Maximum API requests per minute. The free API key only allows for 5 API requests per minute"))
+	requests := flag.Int("requests", 5, "Maximum API requests per minute. The free API key only allows for 5 API requests per minute")
 	help := flag.Bool("help", false, "Display help information")
 	portfolio := flag.String("rebalance", "", "Portfolio file containing source assets to rebalance against target assets")
 	flag.Parse()
 
+	if len(apiKey) == 0 {
+		apiKey = *key
+	}
+
 	if *debug {
 		log.SetLevel(log.DebugLevel)
 	}
+
+	av.ApiRequestsPerMinLimit = *requests
 
 	if *help {
 		flag.PrintDefaults()
