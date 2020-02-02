@@ -6,6 +6,7 @@ import (
 	"os"
 
 	av "github.com/shanebarnes/stocker/alphavantage"
+	port "github.com/shanebarnes/internal/portfolio"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -47,7 +48,7 @@ func main() {
 	} else if len(*portfolio) > 0 {
 		log.Warn("Rebalancing requires making Alpha Vantage API calls")
 		log.Warn("Only ", av.ApiRequestsPerMinLimit, " API calls to Alpha Vantage will be performed each minute")
-		if p, err := NewPortfolio(*portfolio, apiKey, *currency); err == nil {
+		if p, err := port.NewPortfolio(*portfolio, apiKey, *currency); err == nil {
 			p.Rebalance()
 		}
 	} else {
