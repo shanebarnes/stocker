@@ -221,6 +221,15 @@ func (p *Portfolio) getExchangeRate(fromCcy string) (fp.Fixed, error) {
 	return fxr, err
 }
 
+func getPrettyString(v interface{}) string {
+	str := ""
+	buf, err := json.MarshalIndent(v, "", "  ")
+	if err == nil {
+		str = string(buf)
+	}
+	return str
+}
+
 func (p *Portfolio) getSymbolQuotePrice(symbol string) (fp.Fixed, error) {
 	var price fp.Fixed
 	var quote *av.SymbolQuote

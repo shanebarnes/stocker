@@ -1,6 +1,6 @@
 module github.com/shanebarnes/stocker
 
-go 1.12
+go 1.13
 
 require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect

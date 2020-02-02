@@ -13,6 +13,7 @@ $
 $ # Optional: unit tests could take a while with free API key due to API call limit
 $ export AV_API_KEY=<your_api_key>; go test -cover -v ./...
 $
+$ cd cmd/stocker
 $ go build -v
 ```
 
@@ -22,10 +23,10 @@ Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.
 
 ```shell
 $ # Pass API key on command line
-$ ./stocker -apiKey <your_api_key> -rebalance examples/portfolio.json
+$ ./stocker -apiKey <your_api_key> -rebalance ../../examples/portfolio.json
 $
 $ # Alternatively, load API key from environment
-$ export AV_API_KEY=<your_api_key>; ./stocker -rebalance examples/portfolio.json
+$ export AV_API_KEY=<your_api_key>; ./stocker -rebalance ../../examples/portfolio.json
 ```
 
 The [portfolio.json](https://github.com/shanebarnes/stocker/blob/master/examples/portfolio.json) contains source and target assets.

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 
 	av "github.com/shanebarnes/stocker/alphavantage"
-	port "github.com/shanebarnes/internal/portfolio"
+	port "github.com/shanebarnes/stocker/internal/portfolio"
+	ver "github.com/shanebarnes/stocker/internal/version"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,6 +29,7 @@ func main() {
 	debug := flag.Bool("debug", true, "Debug mode")
 	requests := flag.Int("requests", 5, "Maximum API requests per minute. The free API key only allows for 5 API requests per minute")
 	help := flag.Bool("help", false, "Display help information")
+	version := flag.Bool("version", false, "Display version information")
 	portfolio := flag.String("rebalance", "", "Portfolio file containing source assets to rebalance against target assets")
 	flag.Parse()
 
@@ -43,6 +45,8 @@ func main() {
 
 	if *help {
 		flag.PrintDefaults()
+	} else if *version {
+		fmt.Println("stocker version", ver.GetVersion())
 	} else if len(apiKey) == 0 {
 		flag.PrintDefaults()
 	} else if len(*portfolio) > 0 {
@@ -54,13 +58,4 @@ func main() {
 	} else {
 		flag.PrintDefaults()
 	}
-}
-
-func getPrettyString(v interface{}) string {
-	str := ""
-	buf, err := json.MarshalIndent(v, "", "  ")
-	if err == nil {
-		str = string(buf)
-	}
-	return str
 }
