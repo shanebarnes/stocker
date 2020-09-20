@@ -1,20 +1,12 @@
 # stocker
-Rebalance your finanical assets with realtime stock market data acquired on demand from [Alpha Vantage](https://www.alphavantage.co/) APIs. For example, get the latest stock prices or foreign exchange rates.
+Rebalance your financial assets with realtime stock market data acquired on demand from [Alpha Vantage](https://www.alphavantage.co/) or [Questrade](https://www.questrade.com) APIs. For example, get the latest stock prices or foreign exchange rates.
 
 ## Build Instructions
 
 ```shell
 $ git clone https://github.com/shanebarnes/stocker.git
 $ cd stocker
-$
-$ # Optional
-$ go vet -v ./...
-$
-$ # Optional: unit tests could take a while with free API key due to API call limit
-$ export AV_API_KEY=<your_api_key>; go test -cover -v ./...
-$
-$ cd cmd/stocker
-$ go build -v
+$ ./build/build.sh
 ```
 
 ## Examples
@@ -23,10 +15,10 @@ Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.
 
 ```shell
 $ # Pass API key on command line
-$ ./stocker -apiKey <your_api_key> -rebalance ../../examples/portfolio.json
+$ ./stocker -apiKey <your_api_key> -apiServer www.alphavantage.co -rebalance ./examples/portfolio.json
 $
 $ # Alternatively, load API key from environment
-$ export AV_API_KEY=<your_api_key>; ./stocker -rebalance ../../examples/portfolio.json
+$ STOCKER_API_KEY=<your_api_key>; STOCKER_API_SERVER=www.alphavantage.co; ./stocker -rebalance ./examples/portfolio.json
 ```
 
 Here is an example of currency conversion.
@@ -247,5 +239,3 @@ INFO[2020-02-01T21:44:01.852-05:00] target portfolio:{
   }
 }
 ```
-
-Please note that a free API key is limited to 5 API calls per minute.

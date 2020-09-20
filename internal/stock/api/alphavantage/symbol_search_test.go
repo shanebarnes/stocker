@@ -3,6 +3,7 @@ package alphavantage
 import (
 	"testing"
 
+	"github.com/shanebarnes/stocker/internal/stock/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,11 +26,11 @@ func TestCreateSymbolSearchUrl(t *testing.T) {
 }
 
 func TestGetSymbolSearch(t *testing.T) {
-	info, err := GetSymbolSearch("", ApiGetKeyFromEnv())
+	info, err := GetSymbolSearch("", api.GetApiKeyFromEnv())
 	assert.NotNil(t, err)
 	assert.Nil(t, info)
 
-	info, err = GetSymbolSearch("AAPL", ApiGetKeyFromEnv())
+	info, err = GetSymbolSearch("AAPL", api.GetApiKeyFromEnv())
 	assert.Nil(t, err)
 	assert.NotNil(t, info)
 	assert.Equal(t, "AAPL", info.Symbol)
