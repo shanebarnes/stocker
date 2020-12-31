@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"syscall"
 
-	av "github.com/shanebarnes/stocker/alphavantage"
 	fp "github.com/robaho/fixed"
+	"github.com/shanebarnes/stocker/internal/stock"
+	"github.com/shanebarnes/stocker/internal/stock/api"
+	av "github.com/shanebarnes/stocker/internal/stock/api/alphavantage"
+	qt "github.com/shanebarnes/stocker/internal/stock/api/questrade"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -52,17 +56,10 @@ type AssetRebalance struct {
 	Target AssetGroup `json:"target"`
 }
 
-type FxrCache    map[string]map[string]fp.Fixed
-type QuoteCache  map[string]*av.SymbolQuote
-type SymbolCache map[string]*av.SymbolSearchMatch
-
 type Portfolio struct {
-	apiKey      string
-	Assets      AssetRebalance `json:"assets"`
-	currency    string
-	fxrCache    FxrCache
-	quoteCache  QuoteCache
-	symbolCache SymbolCache
+	Api      api.StockApi
+	Assets   AssetRebalance `json:"assets"`
+	currency string
 }
 
 func (p *Portfolio) allocate(funds fp.Fixed) error {
@@ -136,7 +133,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		p.Assets.Target[p.currency] = cash
 		p.diffAssets(&p.Assets.Source, &p.Assets.Target)
 		p.copyAssetFixedToStrings(&p.Assets.Target)
-		log.Info("target portfolio:", getPrettyString(p.Assets.Target))
+		log.Info("target portfolio:", GetPrettyString(p.Assets.Target))
 	} else {
 		err = fmt.Errorf("Invalid portfolio allocation total: %s", allocation.Round(2).StringN(2))
 	}
@@ -200,30 +197,7 @@ func (p *Portfolio) copyAssetStringsToFixed(group *AssetGroup) {
 	}
 }
 
-func (p *Portfolio) getExchangeRate(fromCcy string) (fp.Fixed, error) {
-	var fxr fp.Fixed
-	var err error
-
-	toCcyCache, exists := p.fxrCache[fromCcy]
-	if exists {
-		fxr, exists = toCcyCache[p.currency]
-		log.Debug(fromCcy, ": found cached exchange rate to ", p.currency, ": ", fxr.Round(4).StringN(4))
-	} else {
-		p.fxrCache[fromCcy] = map[string]fp.Fixed{}
-	}
-
-	if !exists {
-		var f float64
-		if f, err = av.GetCurrencyExchangeRate(fromCcy, p.currency, p.apiKey); err == nil {
-			fxr = fp.NewF(f)
-			p.fxrCache[fromCcy][p.currency] = fxr
-		}
-	}
-
-	return fxr, err
-}
-
-func getPrettyString(v interface{}) string {
+func GetPrettyString(v interface{}) string {
 	str := ""
 	buf, err := json.MarshalIndent(v, "", "  ")
 	if err == nil {
@@ -232,62 +206,46 @@ func getPrettyString(v interface{}) string {
 	return str
 }
 
-func (p *Portfolio) getSymbolQuotePrice(symbol string) (fp.Fixed, error) {
-	var price fp.Fixed
-	var quote *av.SymbolQuote
-	var exists bool
+func GetStockApi(apiKey, apiServer string) (api.StockApi, error) {
+	var api api.StockApi
 	var err error
 
-	if quote, exists = p.quoteCache[symbol]; exists {
-		log.Debug(symbol, ": found cached symbol quote")
+	if av.IsApiAlphavantage(apiServer) {
+		api = av.NewApiAlphavantage(apiKey)
+	} else if qt.IsApiQuestrade(apiServer) {
+		api = qt.NewApiQuestrade(apiKey, apiServer)
 	} else {
-		quote, err = av.GetSymbolQuote(symbol, p.apiKey)
+		err = syscall.EINVAL
 	}
 
-	if err == nil {
-		if price, err = fp.NewSErr(quote.Price); err == nil && !exists {
-			p.quoteCache[symbol] = quote
-		}
-	}
-
-	return price, err
-}
-
-func (p *Portfolio) getSymbolSearch(symbol string) (*av.SymbolSearchMatch, error) {
-	var match *av.SymbolSearchMatch
-	var exists bool
-	var err error
-
-	if match, exists = p.symbolCache[symbol]; exists {
-		log.Debug(symbol, ": found cached symbol information")
-	} else {
-		if match, err = av.GetSymbolSearch(symbol, p.apiKey); err == nil {
-			p.symbolCache[symbol] = match
-		}
-	}
-
-	return match, err
+	return api, err
 }
 
 func (p *Portfolio) initializeAsset(symbol string, asset *Asset) error {
 	var err error
-	var search *av.SymbolSearchMatch
+	var search stock.Symbol
 
 	log.Debug(symbol, ": searching for symbol information")
 
 	asset.Type = strings.ToLower(asset.Type)
 	if asset.Type == typeCurrency {
-		search = &av.SymbolSearchMatch{Currency: symbol}
+		search = stock.Symbol{Currency: symbol}
 		asset.fp.Price = fp.NewF(1)
 		asset.Currency = symbol
 		asset.Name = symbol
 		asset.Type = typeCurrency
-	} else if search, err = p.getSymbolSearch(symbol); err == nil {
+		log.Debug(symbol, ": ", asset)
+	} else if search, err = p.Api.GetSymbol(symbol); err == nil {
 		log.Debug(symbol, ": searching for symbol quote information")
-		asset.fp.Price, err = p.getSymbolQuotePrice(symbol)
+		var quote stock.Quote
+		if quote, err = p.Api.GetQuote(symbol); err == nil {
+			asset.fp.Price = fp.NewF(quote.Prices.Latest)
+		}
+
 		asset.Currency = search.Currency
-		asset.Name = search.Name
+		asset.Name = search.Description
 		asset.Type = search.Type
+		log.Debug(symbol, ": ", asset)
 	}
 
 	if err == nil {
@@ -295,8 +253,17 @@ func (p *Portfolio) initializeAsset(symbol string, asset *Asset) error {
 			asset.fp.Fxr = fp.NewF(1)
 		} else {
 			log.Debug(symbol, ": searching for exchange rate from ", search.Currency, " to ", p.currency)
-			asset.fp.Fxr, err = p.getExchangeRate(search.Currency)
+			var ccy stock.Currency
+			ccy, err = p.Api.GetCurrency(search.Currency, p.currency)
+			if err == nil {
+				asset.fp.Fxr = ccy.Rates[p.currency]
+				//asset.fp.Fxr, err = p.getExchangeRate(search.Currency)
+			}
 		}
+	} else {
+		log.Debug("Error getting symbol ", symbol, ": ", err)
+		// TODO: Wrap error?
+		//err = fmt.Errorf("%v: %w", err, syscall.EACCES)
 	}
 
 	return err
@@ -338,7 +305,7 @@ func (p *Portfolio) liquidate() (fp.Fixed, error) {
 	}
 
 	p.copyAssetFixedToStrings(&p.Assets.Source)
-	log.Info("source portfolio:", getPrettyString(p.Assets.Source))
+	log.Info("source portfolio:", GetPrettyString(p.Assets.Source))
 
 	return cash, err
 }
@@ -355,17 +322,20 @@ func newFixedFromString(key, val string) fp.Fixed {
 	return fp
 }
 
-func NewPortfolio(filename, apiKey, currency string) (*Portfolio, error) {
-	portfolio := Portfolio{
-		currency: strings.ToUpper(currency),
-		fxrCache: map[string]map[string]fp.Fixed{},
-		quoteCache: map[string]*av.SymbolQuote{},
-		symbolCache: map[string]*av.SymbolSearchMatch{},
+func NewPortfolio(filename, apiKey, apiServer, currency string) (*Portfolio, error) {
+	api, err := GetStockApi(apiKey, apiServer)
+	if err != nil {
+		log.Fatal("Invalid API server: ", apiServer)
 	}
-	file, err := ioutil.ReadFile(filename)
-	if err == nil {
+
+	portfolio := Portfolio{
+		Api: api,
+		currency: strings.ToUpper(currency),
+	}
+
+	var file []byte
+	if file, err = ioutil.ReadFile(filename); err == nil {
 		if err = json.Unmarshal([]byte(file), &portfolio); err == nil {
-			portfolio.apiKey = apiKey
 			portfolio.copyAssetStringsToFixed(&portfolio.Assets.Source)
 			portfolio.copyAssetStringsToFixed(&portfolio.Assets.Target)
 		} else {

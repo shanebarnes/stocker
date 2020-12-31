@@ -3,6 +3,7 @@ package alphavantage
 import (
 	"testing"
 
+	"github.com/shanebarnes/stocker/internal/stock/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +26,7 @@ func TestCreateSymbolQuoteUrl(t *testing.T) {
 }
 
 func TestGetSymbolQuote(t *testing.T) {
-	quote, err := GetSymbolQuote("", ApiGetKeyFromEnv())
+	quote, err := GetSymbolQuote("", api.GetApiKeyFromEnv())
 	assert.Nil(t, err)
 	assert.NotNil(t, quote)
 	assert.Equal(t, "", quote.Symbol)
@@ -39,7 +40,7 @@ func TestGetSymbolQuote(t *testing.T) {
 	assert.Equal(t, "", quote.Change)
 	assert.Equal(t, "", quote.ChangePercent)
 
-	quote, err = GetSymbolQuote("AAPL", ApiGetKeyFromEnv())
+	quote, err = GetSymbolQuote("AAPL", api.GetApiKeyFromEnv())
 	assert.Nil(t, err)
 	assert.NotNil(t, quote)
 	assert.NotEqual(t, "", quote.Symbol)

@@ -5,25 +5,16 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"time"
 )
 
-const (
-	ApiKeyEnvName = "AV_API_KEY"
-)
-
 var (
-	ApiRequestsPerMinLimit = 0
+	ApiRequestsPerMinLimit = 5// 0
 	apiLastRequestTime = time.Time{}
 )
 
 type apiNote struct {
 	Note string `json:"Note"`
-}
-
-func ApiGetKeyFromEnv() string {
-	return os.Getenv(ApiKeyEnvName)
 }
 
 func apiGetRequestInterval() time.Duration {

@@ -3,32 +3,14 @@ package alphavantage
 import (
 	"bytes"
 	"encoding/json"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestApiGetKeyFromEnv(t *testing.T) {
-	// Save current environment variable before modifying
-	cache := ApiGetKeyFromEnv()
-
-	os.Setenv(ApiKeyEnvName, "")
-	assert.Equal(t, "", ApiGetKeyFromEnv())
-
-	os.Setenv(ApiKeyEnvName, "ABCD1234")
-	assert.Equal(t, "ABCD1234", ApiGetKeyFromEnv())
-
-	os.Setenv(ApiKeyEnvName, "")
-	assert.Equal(t, "", ApiGetKeyFromEnv())
-
-	// Restore original environment variable value
-	os.Setenv(ApiKeyEnvName, cache)
-}
-
 func TestApiGetRequestInterval(t *testing.T) {
-	assert.Equal(t, 0, ApiRequestsPerMinLimit)
+	assert.Equal(t, 5, ApiRequestsPerMinLimit)
 
 	ApiRequestsPerMinLimit = -1
 	assert.Equal(t, 0 * time.Second, apiGetRequestInterval())
@@ -48,7 +30,7 @@ func TestApiGetResponseBody(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, 0, len(body))
 
-	body, err = ApiGetResponseBody("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=AAPL&apikey=" + ApiGetKeyFromEnv())
+	body, err = ApiGetResponseBody("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=AAPL&apikey=") // + ApiGetKeyFromEnv())
 	assert.Nil(t, err)
 	assert.Less(t, 0, len(body))
 }
