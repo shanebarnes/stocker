@@ -81,6 +81,6 @@ func NewApiAlphavantage(apiKey string) api.StockApi {
 	}
 }
 
-func (a *av) RedeemAuthToken(token string) (*api.AuthResponse, error) {
+func (a *av) RefreshCredentials() (*api.OAuthCredentials, error) {
 	return nil, syscall.ENOTSUP
 }

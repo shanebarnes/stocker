@@ -7,5 +7,5 @@ import (
 )
 
 func TestString(t *testing.T) {
-	assert.Equal(t, "1.1.0", String())
+	assert.Equal(t, "1.2.0", String())
 }

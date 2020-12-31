@@ -15,16 +15,16 @@ Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.
 
 ```shell
 $ # Pass API key on command line
-$ ./stocker -apiKey <your_api_key> -apiServer www.alphavantage.co -rebalance ./examples/portfolio.json
+$ ./stocker -debug -apiKey <your_api_key> -apiServer www.alphavantage.co -rebalance ./examples/portfolio.json
 $
 $ # Alternatively, load API key from environment
-$ export STOCKER_API_KEY=<your_api_key>; export STOCKER_API_SERVER=www.alphavantage.co; ./stocker -rebalance ./examples/portfolio.json
+$ STOCKER_API_KEY=<your_api_key> && STOCKER_API_SERVER=www.alphavantage.co && ./stocker -debug -rebalance ./examples/portfolio.json
 ```
 
 Here is an example of currency conversion.
 
 ```shell
-$ ./stocker -rebalance ../../examples/currency_conversion.json
+$ ./stocker -debug -rebalance ../../examples/currency_conversion.json
 WARN[2020-02-01T21:34:22.148-05:00] Rebalancing requires making Alpha Vantage API calls
 WARN[2020-02-01T21:34:22.148-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
 INFO[2020-02-01T21:34:22.149-05:00] Validating source assets
@@ -85,7 +85,7 @@ INFO[2020-02-01T21:34:22.574-05:00] target portfolio:{
 Here is an example of stock portfolio rebalancing in Canadian dollars.
 
 ```shell
-$ ./stocker -rebalance ../../examples/portfolio.json -currency CAD
+$ ./stocker -debug -rebalance ../../examples/portfolio.json -currency CAD
 WARN[2020-02-01T21:42:01.759-05:00] Rebalancing requires making Alpha Vantage API calls
 WARN[2020-02-01T21:42:01.760-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
 INFO[2020-02-01T21:42:01.760-05:00] Validating source assets
@@ -240,17 +240,132 @@ INFO[2020-02-01T21:44:01.852-05:00] target portfolio:{
 }
 ```
 
-Authorize stocker for use with Questrade APIs.
+Here is an example of using OAuth credentials with refresh for use with Questrade APIs.
 
 ```shell
 # Pass API authorization token on command line
-$ ./stocker -authToken <your_api_auth_token> -apiServer questrade.com
-$
-$ # Alternatively, load API authorization token from environment
-export STOCKER_API_AUTH_TOKEN=<your_api_auth_token>; ./stocker -apiServer questrade.com
-{
-  "AccessToken": "your_questrade_access_token",
-  "ApiServer": "your_questrade_api_server_url"
+$ ./stocker -apiServer questrade.com -credentials oauth.json -rebalance ../../examples/portfolio.json -refresh
+WARN[2020-12-30T23:44:05.517-05:00] Rebalancing requires making stock API calls
+INFO[2020-12-30T23:44:06.037-05:00] Validating source assets
+INFO[2020-12-30T23:44:06.576-05:00] Validating target assets
+INFO[2020-12-30T23:44:06.851-05:00] Liquidating source assets into USD funds
+INFO[2020-12-30T23:44:07.004-05:00] source portfolio:{
+  "AAPL": {
+    "allocation": "15.0255%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "3343.00USD",
+    "name": "APPLE INC",
+    "price": "133.72",
+    "quantity": "25.00",
+    "type": "Stock"
+  },
+  "CAD": {
+    "allocation": "35.1560%",
+    "currency": "CAD",
+    "exchangeRate": "0.7822",
+    "marketValue": "7821.80USD",
+    "name": "CAD",
+    "price": "1.00",
+    "quantity": "10000.00",
+    "type": "currency"
+  },
+  "MSFT": {
+    "allocation": "49.8184%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "11084.00USD",
+    "name": "MICROSOFT CORP",
+    "price": "221.68",
+    "quantity": "50.00",
+    "type": "Stock"
+  }
 }
-
+INFO[2020-12-30T23:44:07.004-05:00] Re-allocating source assets to match target allocations
+INFO[2020-12-30T23:44:07.162-05:00] target portfolio:{
+  "AAPL": {
+    "allocation": "0.0000%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "0.00USD",
+    "name": "APPLE INC",
+    "order": {
+      "marketValue": "-3343.00USD",
+      "quantity": "-25.00"
+    },
+    "price": "133.72",
+    "quantity": "0.00",
+    "type": "Stock"
+  },
+  "AMZN": {
+    "allocation": "59.0747%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "13143.40USD",
+    "name": "AMAZON COM INC",
+    "order": {
+      "marketValue": "+13143.40USD",
+      "quantity": "+4.00"
+    },
+    "price": "3285.85",
+    "quantity": "4.00",
+    "type": "Stock"
+  },
+  "CAD": {
+    "allocation": "5.0000%",
+    "currency": "CAD",
+    "exchangeRate": "0.7822",
+    "marketValue": "1112.44USD",
+    "name": "CAD",
+    "order": {
+      "marketValue": "-6709.36USD",
+      "quantity": "-8577.77"
+    },
+    "price": "1.00",
+    "quantity": "1422.23",
+    "type": "currency"
+  },
+  "MSFT": {
+    "allocation": "0.0000%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "0.00USD",
+    "name": "MICROSOFT CORP",
+    "order": {
+      "marketValue": "-11084.00USD",
+      "quantity": "-50.00"
+    },
+    "price": "221.68",
+    "quantity": "0.00",
+    "type": "Stock"
+  },
+  "TSLA": {
+    "allocation": "34.3505%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "7642.58USD",
+    "name": "TESLA INC",
+    "order": {
+      "marketValue": "+7642.58USD",
+      "quantity": "+11.00"
+    },
+    "price": "694.78",
+    "quantity": "11.00",
+    "type": "Stock"
+  },
+  "USD": {
+    "allocation": "1.5748%",
+    "currency": "USD",
+    "exchangeRate": "1.0000",
+    "marketValue": "350.38USD",
+    "name": "USD",
+    "order": {
+      "marketValue": "+350.38USD",
+      "quantity": "+350.38"
+    },
+    "price": "1.00",
+    "quantity": "350.38",
+    "type": "currency"
+  }
+}
 ```

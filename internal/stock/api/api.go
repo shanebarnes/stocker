@@ -11,7 +11,6 @@ import (
 const (
 	ApiKeyEnvName = "STOCKER_API_KEY"
 	ApiServerEnvName = "STOCKER_API_SERVER"
-	ApiAuthTokenEnvName = "STOCKER_API_AUTH_TOKEN"
 
 	DefaultClientTimeout = time.Second * 4
 
@@ -20,16 +19,19 @@ const (
 	DefaultRequestRetryLimit = 10
 )
 
-type AuthResponse struct {
-	AccessToken string
-	ApiServer   string
+type OAuthCredentials struct {
+	AccessToken  string
+	ApiServer    string
+	ExpiresIn    int
+	RefreshToken string
+	TokenType    string
 }
 
 type StockApi interface {
 	GetCurrency(currency, currencyTo string) (stock.Currency, error)
 	GetQuote(symbol string) (stock.Quote, error)
 	GetSymbol(symbol string) (stock.Symbol, error)
-	RedeemAuthToken(token string) (*AuthResponse, error)
+	RefreshCredentials() (*OAuthCredentials, error)
 }
 
 func GetApiKeyFromEnv() string {
@@ -38,10 +40,6 @@ func GetApiKeyFromEnv() string {
 
 func GetApiServerFromEnv() string {
 	return os.Getenv(ApiServerEnvName)
-}
-
-func GetApiAuthTokenFromEnv() string {
-	return os.Getenv(ApiAuthTokenEnvName)
 }
 
 func MakeApiRequestWithRetry(client *http.Client, req *http.Request, retryCb func(res *http.Response, err error) bool) {
@@ -73,8 +71,4 @@ func MakeApiRequestWithRetry(client *http.Client, req *http.Request, retryCb fun
 			break
 		}
 	}
-}
-
-func RedeemApiAuthToken(authToken, apiServer string) (string, string, error) {
-	return "", "", nil
 }

@@ -2,6 +2,7 @@ package questrade
 
 import (
 	"encoding/json"
+	"net/url"
 	"strconv"
 	"strings"
 	"syscall"
@@ -19,6 +20,7 @@ type qt struct {
 	apiKey     string
 	apiServer  string
 	cache     *stock.Cache
+	creds     api.OAuthCredentials
 }
 
 type redeemTokenResponse struct {
@@ -74,6 +76,16 @@ func (q *qt) GetQuote(symbol string) (stock.Quote, error) {
 	return qte, err
 }
 
+func getServerHostname(server string) (string, error) {
+	hostname := ""
+	u, err := url.Parse(server)
+	if err == nil {
+		hostname = u.Hostname()
+	}
+	return hostname, err
+}
+
+
 func (q *qt) GetSymbol(symbol string) (stock.Symbol, error) {
 	sym, err := q.cache.GetSymbol(symbol)
 	if err != nil {
@@ -95,28 +107,42 @@ func IsApiQuestrade(apiServer string) bool {
 	return strings.HasSuffix(apiServer, qtDomain)
 }
 
-func NewApiQuestrade(apiKey, apiServer string) api.StockApi {
+func NewApiQuestrade(apiKey, apiServer string, creds api.OAuthCredentials) api.StockApi {
+	if len(creds.AccessToken) > 0 && len(creds.ApiServer) > 0 {
+		apiKey = creds.AccessToken
+		apiServer, _ = getServerHostname(creds.ApiServer)
+	}
+
 	return &qt{
 		apiKey: apiKey,
 		apiServer: apiServer,
 		cache: stock.NewCache(),
+		creds: creds,
 	}
 }
 
-// See https://www.questrade.com/api/documentation/getting-started
-func (q *qt) RedeemAuthToken(token string) (*api.AuthResponse, error) {
-	var authResponse *api.AuthResponse
-
-	body, err := ApiGetResponseBody("https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token=" + token, "")
+// References:
+//   https://www.questrade.com/api/documentation/getting-started
+//   https://www.questrade.com/api/documentation/security
+func (q *qt) RefreshCredentials() (*api.OAuthCredentials, error) {
+	var creds *api.OAuthCredentials
+	body, err := ApiGetResponseBody("https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token=" + q.creds.RefreshToken, "")
 	if err == nil {
 		response := redeemTokenResponse{}
 		if err = json.Unmarshal(body, &response); err == nil {
-			authResponse = &api.AuthResponse{
+			q.creds = api.OAuthCredentials{
 				AccessToken: response.AccessToken,
 				ApiServer: response.ApiServer,
+				ExpiresIn: response.ExpiresIn,
+				RefreshToken: response.RefreshToken,
+				TokenType: response.TokenType,
 			}
+			creds = &q.creds
+
+			q.apiKey = creds.AccessToken
+			q.apiServer, err = getServerHostname(creds.ApiServer)
 		}
 	}
 
-	return authResponse, err
+	return creds, err
 }

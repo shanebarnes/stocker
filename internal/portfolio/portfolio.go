@@ -206,14 +206,14 @@ func GetPrettyString(v interface{}) string {
 	return str
 }
 
-func GetStockApi(apiKey, apiServer string) (api.StockApi, error) {
+func getStockApi(apiKey, apiServer string, creds api.OAuthCredentials) (api.StockApi, error) {
 	var api api.StockApi
 	var err error
 
 	if av.IsApiAlphavantage(apiServer) {
 		api = av.NewApiAlphavantage(apiKey)
 	} else if qt.IsApiQuestrade(apiServer) {
-		api = qt.NewApiQuestrade(apiKey, apiServer)
+		api = qt.NewApiQuestrade(apiKey, apiServer, creds)
 	} else {
 		err = syscall.EINVAL
 	}
@@ -322,10 +322,30 @@ func newFixedFromString(key, val string) fp.Fixed {
 	return fp
 }
 
-func NewPortfolio(filename, apiKey, apiServer, currency string) (*Portfolio, error) {
-	api, err := GetStockApi(apiKey, apiServer)
+func NewPortfolio(filename, apiKey, apiServer, oauthCredsFile string, oauthRefresh bool, currency string) (*Portfolio, error) {
+	creds := api.OAuthCredentials{}
+	if len(oauthCredsFile) > 0 {
+		file, err := ioutil.ReadFile(oauthCredsFile)
+		if err == nil {
+			err = json.Unmarshal([]byte(file), &creds)
+		}
+
+		if err != nil {
+			log.Fatal("Invalid credentials file:", err)
+		}
+	}
+
+	api, err := getStockApi(apiKey, apiServer, creds)
 	if err != nil {
 		log.Fatal("Invalid API server: ", apiServer)
+	}
+
+	if oauthRefresh {
+		if refreshCreds, err := api.RefreshCredentials(); err == nil {
+			ioutil.WriteFile(oauthCredsFile, []byte(GetPrettyString(refreshCreds)), 0644)
+		} else {
+			log.Fatal("Failed to refresh credentials:", err)
+		}
 	}
 
 	portfolio := Portfolio{
@@ -338,10 +358,10 @@ func NewPortfolio(filename, apiKey, apiServer, currency string) (*Portfolio, err
 		if err = json.Unmarshal([]byte(file), &portfolio); err == nil {
 			portfolio.copyAssetStringsToFixed(&portfolio.Assets.Source)
 			portfolio.copyAssetStringsToFixed(&portfolio.Assets.Target)
-		} else {
-			log.Fatal(err)
 		}
-	} else {
+	}
+
+	if err != nil {
 		log.Fatal(err)
 	}
 
