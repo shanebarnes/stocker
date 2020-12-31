@@ -18,7 +18,7 @@ $ # Pass API key on command line
 $ ./stocker -apiKey <your_api_key> -apiServer www.alphavantage.co -rebalance ./examples/portfolio.json
 $
 $ # Alternatively, load API key from environment
-$ STOCKER_API_KEY=<your_api_key>; STOCKER_API_SERVER=www.alphavantage.co; ./stocker -rebalance ./examples/portfolio.json
+$ export STOCKER_API_KEY=<your_api_key>; export STOCKER_API_SERVER=www.alphavantage.co; ./stocker -rebalance ./examples/portfolio.json
 ```
 
 Here is an example of currency conversion.
@@ -243,7 +243,11 @@ INFO[2020-02-01T21:44:01.852-05:00] target portfolio:{
 Authorize stocker for use with Questrade APIs.
 
 ```shell
-STOCKER_API_KEY=<your_api_key>; ./stocker -authToken STOCKER_AUTH_TOKEN -apiServer questrade.com
+# Pass API authorization token on command line
+$ ./stocker -authToken <your_api_auth_token> -apiServer questrade.com
+$
+$ # Alternatively, load API authorization token from environment
+export STOCKER_API_AUTH_TOKEN=<your_api_auth_token>; ./stocker -apiServer questrade.com
 {
   "AccessToken": "your_questrade_access_token",
   "ApiServer": "your_questrade_api_server_url"
