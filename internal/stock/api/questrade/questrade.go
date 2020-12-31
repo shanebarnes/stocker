@@ -1,6 +1,7 @@
 package questrade
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"syscall"
@@ -10,10 +11,22 @@ import (
 	"github.com/shanebarnes/stocker/internal/stock/api"
 )
 
+const (
+	qtDomain = "questrade.com"
+)
+
 type qt struct {
 	apiKey     string
 	apiServer  string
 	cache     *stock.Cache
+}
+
+type redeemTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	ApiServer    string `json:"api_server"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	TokenType    string `json:"token_type"`
 }
 
 func (q *qt) GetCurrency(currency, currencyTo string) (stock.Currency, error) {
@@ -79,7 +92,7 @@ func (q *qt) GetSymbol(symbol string) (stock.Symbol, error) {
 }
 
 func IsApiQuestrade(apiServer string) bool {
-	return strings.HasSuffix(apiServer, "questrade.com")
+	return strings.HasSuffix(apiServer, qtDomain)
 }
 
 func NewApiQuestrade(apiKey, apiServer string) api.StockApi {
@@ -88,4 +101,22 @@ func NewApiQuestrade(apiKey, apiServer string) api.StockApi {
 		apiServer: apiServer,
 		cache: stock.NewCache(),
 	}
+}
+
+// See https://www.questrade.com/api/documentation/getting-started
+func (q *qt) RedeemAuthToken(token string) (*api.AuthResponse, error) {
+	var authResponse *api.AuthResponse
+
+	body, err := ApiGetResponseBody("https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token=" + token, "")
+	if err == nil {
+		response := redeemTokenResponse{}
+		if err = json.Unmarshal(body, &response); err == nil {
+			authResponse = &api.AuthResponse{
+				AccessToken: response.AccessToken,
+				ApiServer: response.ApiServer,
+			}
+		}
+	}
+
+	return authResponse, err
 }

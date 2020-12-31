@@ -3,14 +3,16 @@ package portfolio
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"strings"
+	"syscall"
+
 	fp "github.com/robaho/fixed"
 	"github.com/shanebarnes/stocker/internal/stock"
 	"github.com/shanebarnes/stocker/internal/stock/api"
 	av "github.com/shanebarnes/stocker/internal/stock/api/alphavantage"
 	qt "github.com/shanebarnes/stocker/internal/stock/api/questrade"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"strings"
 )
 
 const (
@@ -131,7 +133,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		p.Assets.Target[p.currency] = cash
 		p.diffAssets(&p.Assets.Source, &p.Assets.Target)
 		p.copyAssetFixedToStrings(&p.Assets.Target)
-		log.Info("target portfolio:", getPrettyString(p.Assets.Target))
+		log.Info("target portfolio:", GetPrettyString(p.Assets.Target))
 	} else {
 		err = fmt.Errorf("Invalid portfolio allocation total: %s", allocation.Round(2).StringN(2))
 	}
@@ -195,13 +197,28 @@ func (p *Portfolio) copyAssetStringsToFixed(group *AssetGroup) {
 	}
 }
 
-func getPrettyString(v interface{}) string {
+func GetPrettyString(v interface{}) string {
 	str := ""
 	buf, err := json.MarshalIndent(v, "", "  ")
 	if err == nil {
 		str = string(buf)
 	}
 	return str
+}
+
+func GetStockApi(apiKey, apiServer string) (api.StockApi, error) {
+	var api api.StockApi
+	var err error
+
+	if av.IsApiAlphavantage(apiServer) {
+		api = av.NewApiAlphavantage(apiKey)
+	} else if qt.IsApiQuestrade(apiServer) {
+		api = qt.NewApiQuestrade(apiKey, apiServer)
+	} else {
+		err = syscall.EINVAL
+	}
+
+	return api, err
 }
 
 func (p *Portfolio) initializeAsset(symbol string, asset *Asset) error {
@@ -288,7 +305,7 @@ func (p *Portfolio) liquidate() (fp.Fixed, error) {
 	}
 
 	p.copyAssetFixedToStrings(&p.Assets.Source)
-	log.Info("source portfolio:", getPrettyString(p.Assets.Source))
+	log.Info("source portfolio:", GetPrettyString(p.Assets.Source))
 
 	return cash, err
 }
@@ -306,12 +323,8 @@ func newFixedFromString(key, val string) fp.Fixed {
 }
 
 func NewPortfolio(filename, apiKey, apiServer, currency string) (*Portfolio, error) {
-	var api api.StockApi
-	if av.IsApiAlphavantage(apiServer) {
-		api = av.NewApiAlphavantage(apiKey)
-	} else if qt.IsApiQuestrade(apiServer) {
-		api = qt.NewApiQuestrade(apiKey, apiServer)
-	} else {
+	api, err := GetStockApi(apiKey, apiServer)
+	if err != nil {
 		log.Fatal("Invalid API server: ", apiServer)
 	}
 
@@ -319,8 +332,9 @@ func NewPortfolio(filename, apiKey, apiServer, currency string) (*Portfolio, err
 		Api: api,
 		currency: strings.ToUpper(currency),
 	}
-	file, err := ioutil.ReadFile(filename)
-	if err == nil {
+
+	var file []byte
+	if file, err = ioutil.ReadFile(filename); err == nil {
 		if err = json.Unmarshal([]byte(file), &portfolio); err == nil {
 			portfolio.copyAssetStringsToFixed(&portfolio.Assets.Source)
 			portfolio.copyAssetStringsToFixed(&portfolio.Assets.Target)

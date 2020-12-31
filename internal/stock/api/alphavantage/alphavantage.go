@@ -3,6 +3,7 @@ package alphavantage
 import (
 	"strconv"
 	"strings"
+	"syscall"
 
 	fp "github.com/robaho/fixed"
 	"github.com/shanebarnes/stocker/internal/stock"
@@ -69,13 +70,17 @@ func (a *av) GetSymbol(symbol string) (stock.Symbol, error) {
 	return sym, err
 }
 
-	func IsApiAlphavantage(apiServer string) bool {
-		return strings.HasSuffix(apiServer, "alphavantage.co")
-	}
+func IsApiAlphavantage(apiServer string) bool {
+	return strings.HasSuffix(apiServer, "alphavantage.co")
+}
 
 func NewApiAlphavantage(apiKey string) api.StockApi {
 	return &av{
 		apiKey: apiKey,
 		cache: stock.NewCache(),
 	}
+}
+
+func (a *av) RedeemAuthToken(token string) (*api.AuthResponse, error) {
+	return nil, syscall.ENOTSUP
 }
