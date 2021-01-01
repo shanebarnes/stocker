@@ -1,5 +1,9 @@
 # stocker
-Rebalance your financial assets with realtime stock market data acquired on demand from [Alpha Vantage](https://www.alphavantage.co/) or [Questrade](https://www.questrade.com) APIs. For example, get the latest stock prices or foreign exchange rates.
+Practice rebalancing your financial assets with realtime stock market data acquired on demand from [Alpha Vantage](https://www.alphavantage.co/) or [Questrade](https://www.questrade.com) APIs. For example, get the latest stock prices or foreign exchange rates.
+
+Please note that this project is not production ready and should only be used with practice portfolios where no real money is at risk.
+
+![build workflow](https://github.com/shanebarnes/stocker/workflows/stocker/badge.svg)
 
 ## Build Instructions
 
@@ -11,361 +15,38 @@ $ ./build/build.sh
 
 ## Examples
 
-Try rebalancing a sample portfolio! An [Alpha Vantage](https://www.alphavantage.co/) API key is required. A free API key can be claimed [here](https://www.alphavantage.co/support/#api-key).
+Try rebalancing a sample portfolio!
+
+### Alpha Vantage
+
+An [Alpha Vantage](https://www.alphavantage.co/) API key is required. A free API key can be claimed [here](https://www.alphavantage.co/support/#api-key).
 
 ```shell
 $ # Pass API key on command line
-$ ./stocker -debug -apiKey <your_api_key> -apiServer www.alphavantage.co -rebalance ./examples/portfolio.json
+$ ./bin/stocker-darwin -apiKey <your_api_key> -apiServer alphavantage.co -rebalance ./examples/portfolio.json
 $
 $ # Alternatively, load API key from environment
-$ STOCKER_API_KEY=<your_api_key> && STOCKER_API_SERVER=www.alphavantage.co && ./stocker -debug -rebalance ./examples/portfolio.json
+$ STOCKER_API_KEY=<your_api_key> STOCKER_API_SERVER=alphavantage.co ./stocker -debug -rebalance ./examples/portfolio.json
 ```
+
+### Questrade
+
+The stocker app must be [registered](https://www.questrade.com/api/documentation/getting-started) with Questrade. Here is an example of using OAuth credentials with refresh for use with Questrade APIs.
+
+```shell
+$ ./bin/stocker-darwin -apiServer questrade.com -credentials ./examples/credentials.json -rebalance ./examples/portfolio.json -refresh
+```
+
+### Miscellaneous
 
 Here is an example of currency conversion.
 
 ```shell
-$ ./stocker -debug -rebalance ../../examples/currency_conversion.json
-WARN[2020-02-01T21:34:22.148-05:00] Rebalancing requires making Alpha Vantage API calls
-WARN[2020-02-01T21:34:22.148-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
-INFO[2020-02-01T21:34:22.149-05:00] Validating source assets
-DEBU[2020-02-01T21:34:22.149-05:00] USD: searching for symbol information
-INFO[2020-02-01T21:34:22.149-05:00] Validating target assets
-DEBU[2020-02-01T21:34:22.149-05:00] EUR: searching for symbol information
-DEBU[2020-02-01T21:34:22.149-05:00] EUR: searching for exchange rate from EUR to USD
-INFO[2020-02-01T21:34:22.574-05:00] Liquidating source assets into USD funds
-DEBU[2020-02-01T21:34:22.574-05:00] USD: searching for symbol information
-INFO[2020-02-01T21:34:22.574-05:00] source portfolio:{
-  "USD": {
-    "allocation": "100.0000%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "10000.00USD",
-    "name": "USD",
-    "price": "1.00",
-    "quantity": "10000.00",
-    "type": "currency"
-  }
-}
-INFO[2020-02-01T21:34:22.574-05:00] Re-allocating source assets to match target allocations
-DEBU[2020-02-01T21:34:22.574-05:00] EUR: searching for symbol information
-DEBU[2020-02-01T21:34:22.574-05:00] EUR: searching for exchange rate from EUR to USD
-DEBU[2020-02-01T21:34:22.574-05:00] EUR: found cached exchange rate to USD: 1.1094
-INFO[2020-02-01T21:34:22.574-05:00] target portfolio:{
-  "EUR": {
-    "allocation": "100.0000%",
-    "currency": "EUR",
-    "exchangeRate": "1.1094",
-    "marketValue": "10000.00USD",
-    "name": "EUR",
-    "order": {
-      "marketValue": "+10000.00USD",
-      "quantity": "+9013.88"
-    },
-    "price": "1.00",
-    "quantity": "9013.88",
-    "type": "currency"
-  },
-  "USD": {
-    "allocation": "0.0000%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "0.00USD",
-    "name": "USD",
-    "order": {
-      "marketValue": "-10000.00USD",
-      "quantity": "-10000.00"
-    },
-    "price": "1.00",
-    "quantity": "0.00",
-    "type": "currency"
-  }
-}
+$ STOCKER_API_KEY=<your_api_key> STOCKER_API_SERVER=alphavantage.co ./bin/stocker-darwin -rebalance ./examples/currency_conversion.json -currency EUR
 ```
 
 Here is an example of stock portfolio rebalancing in Canadian dollars.
 
 ```shell
-$ ./stocker -debug -rebalance ../../examples/portfolio.json -currency CAD
-WARN[2020-02-01T21:42:01.759-05:00] Rebalancing requires making Alpha Vantage API calls
-WARN[2020-02-01T21:42:01.760-05:00] Only 5 API calls to Alpha Vantage will be performed each minute
-INFO[2020-02-01T21:42:01.760-05:00] Validating source assets
-DEBU[2020-02-01T21:42:01.760-05:00] CAD: searching for symbol information
-DEBU[2020-02-01T21:42:01.760-05:00] MSFT: searching for symbol information
-DEBU[2020-02-01T21:42:02.219-05:00] MSFT: searching for symbol quote information
-DEBU[2020-02-01T21:42:16.828-05:00] MSFT: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:42:31.807-05:00] AAPL: searching for symbol information
-DEBU[2020-02-01T21:42:46.864-05:00] AAPL: searching for symbol quote information
-DEBU[2020-02-01T21:43:02.154-05:00] AAPL: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:43:02.154-05:00] USD: found cached exchange rate to CAD: 1.3229
-INFO[2020-02-01T21:43:02.154-05:00] Validating target assets
-DEBU[2020-02-01T21:43:02.154-05:00] TSLA: searching for symbol information
-DEBU[2020-02-01T21:43:16.899-05:00] TSLA: searching for symbol quote information
-DEBU[2020-02-01T21:43:31.839-05:00] TSLA: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:43:31.839-05:00] USD: found cached exchange rate to CAD: 1.3229
-DEBU[2020-02-01T21:43:31.839-05:00] AMZN: searching for symbol information
-DEBU[2020-02-01T21:43:46.936-05:00] AMZN: searching for symbol quote information
-DEBU[2020-02-01T21:44:01.850-05:00] AMZN: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:44:01.850-05:00] USD: found cached exchange rate to CAD: 1.3229
-DEBU[2020-02-01T21:44:01.850-05:00] CAD: searching for symbol information
-INFO[2020-02-01T21:44:01.850-05:00] Liquidating source assets into CAD funds
-DEBU[2020-02-01T21:44:01.850-05:00] CAD: searching for symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] MSFT: searching for symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] MSFT: found cached symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] MSFT: searching for symbol quote information
-DEBU[2020-02-01T21:44:01.850-05:00] MSFT: found cached symbol quote
-DEBU[2020-02-01T21:44:01.850-05:00] MSFT: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:44:01.850-05:00] USD: found cached exchange rate to CAD: 1.3229
-DEBU[2020-02-01T21:44:01.850-05:00] AAPL: searching for symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] AAPL: found cached symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] AAPL: searching for symbol quote information
-DEBU[2020-02-01T21:44:01.850-05:00] AAPL: found cached symbol quote
-DEBU[2020-02-01T21:44:01.850-05:00] AAPL: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:44:01.850-05:00] USD: found cached exchange rate to CAD: 1.3229
-INFO[2020-02-01T21:44:01.850-05:00] source portfolio:{
-  "AAPL": {
-    "allocation": "32.5001%",
-    "currency": "USD",
-    "exchangeRate": "1.3229",
-    "marketValue": "10236.27CAD",
-    "name": "Apple Inc.",
-    "price": "309.51",
-    "quantity": "25.00",
-    "type": "Equity"
-  },
-  "CAD": {
-    "allocation": "31.7499%",
-    "currency": "CAD",
-    "exchangeRate": "1.0000",
-    "marketValue": "10000.00CAD",
-    "name": "CAD",
-    "price": "1.00",
-    "quantity": "10000.00",
-    "type": "currency"
-  },
-  "MSFT": {
-    "allocation": "35.7500%",
-    "currency": "USD",
-    "exchangeRate": "1.3229",
-    "marketValue": "11259.86CAD",
-    "name": "Microsoft Corporation",
-    "price": "170.23",
-    "quantity": "50.00",
-    "type": "Equity"
-  }
-}
-INFO[2020-02-01T21:44:01.850-05:00] Re-allocating source assets to match target allocations
-DEBU[2020-02-01T21:44:01.850-05:00] AMZN: searching for symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] AMZN: found cached symbol information
-DEBU[2020-02-01T21:44:01.850-05:00] AMZN: searching for symbol quote information
-DEBU[2020-02-01T21:44:01.850-05:00] AMZN: found cached symbol quote
-DEBU[2020-02-01T21:44:01.850-05:00] AMZN: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:44:01.850-05:00] USD: found cached exchange rate to CAD: 1.3229
-DEBU[2020-02-01T21:44:01.850-05:00] TSLA: searching for symbol information
-DEBU[2020-02-01T21:44:01.851-05:00] TSLA: found cached symbol information
-DEBU[2020-02-01T21:44:01.851-05:00] TSLA: searching for symbol quote information
-DEBU[2020-02-01T21:44:01.851-05:00] TSLA: found cached symbol quote
-DEBU[2020-02-01T21:44:01.851-05:00] TSLA: searching for exchange rate from USD to CAD
-DEBU[2020-02-01T21:44:01.851-05:00] USD: found cached exchange rate to CAD: 1.3229
-INFO[2020-02-01T21:44:01.852-05:00] target portfolio:{
-  "AAPL": {
-    "allocation": "0.0000%",
-    "currency": "USD",
-    "exchangeRate": "1.3229",
-    "marketValue": "0.00CAD",
-    "name": "Apple Inc.",
-    "order": {
-      "marketValue": "-10236.27CAD",
-      "quantity": "-25.00"
-    },
-    "price": "309.51",
-    "quantity": "0.00",
-    "type": "Equity"
-  },
-  "AMZN": {
-    "allocation": "59.0592%",
-    "currency": "USD",
-    "exchangeRate": "1.3229",
-    "marketValue": "18601.35CAD",
-    "name": "Amazon.com Inc.",
-    "order": {
-      "marketValue": "+18601.35CAD",
-      "quantity": "+7.00"
-    },
-    "price": "2008.72",
-    "quantity": "7.00",
-    "type": "Equity"
-  },
-  "CAD": {
-    "allocation": "8.1506%",
-    "currency": "CAD",
-    "exchangeRate": "1.0000",
-    "marketValue": "2567.11CAD",
-    "name": "CAD",
-    "order": {
-      "marketValue": "-7432.89CAD",
-      "quantity": "-7432.89"
-    },
-    "price": "1.00",
-    "quantity": "2567.11",
-    "type": "Currency"
-  },
-  "MSFT": {
-    "allocation": "0.0000%",
-    "currency": "USD",
-    "exchangeRate": "1.3229",
-    "marketValue": "0.00CAD",
-    "name": "Microsoft Corporation",
-    "order": {
-      "marketValue": "-11259.86CAD",
-      "quantity": "-50.00"
-    },
-    "price": "170.23",
-    "quantity": "0.00",
-    "type": "Equity"
-  },
-  "TSLA": {
-    "allocation": "32.7903%",
-    "currency": "USD",
-    "exchangeRate": "1.3229",
-    "marketValue": "10327.67CAD",
-    "name": "Tesla Inc.",
-    "order": {
-      "marketValue": "+10327.67CAD",
-      "quantity": "+12.00"
-    },
-    "price": "650.57",
-    "quantity": "12.00",
-    "type": "Equity"
-  }
-}
-```
-
-Here is an example of using OAuth credentials with refresh for use with Questrade APIs.
-
-```shell
-# Pass API authorization token on command line
-$ ./stocker -apiServer questrade.com -credentials oauth.json -rebalance ../../examples/portfolio.json -refresh
-WARN[2020-12-30T23:44:05.517-05:00] Rebalancing requires making stock API calls
-INFO[2020-12-30T23:44:06.037-05:00] Validating source assets
-INFO[2020-12-30T23:44:06.576-05:00] Validating target assets
-INFO[2020-12-30T23:44:06.851-05:00] Liquidating source assets into USD funds
-INFO[2020-12-30T23:44:07.004-05:00] source portfolio:{
-  "AAPL": {
-    "allocation": "15.0255%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "3343.00USD",
-    "name": "APPLE INC",
-    "price": "133.72",
-    "quantity": "25.00",
-    "type": "Stock"
-  },
-  "CAD": {
-    "allocation": "35.1560%",
-    "currency": "CAD",
-    "exchangeRate": "0.7822",
-    "marketValue": "7821.80USD",
-    "name": "CAD",
-    "price": "1.00",
-    "quantity": "10000.00",
-    "type": "currency"
-  },
-  "MSFT": {
-    "allocation": "49.8184%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "11084.00USD",
-    "name": "MICROSOFT CORP",
-    "price": "221.68",
-    "quantity": "50.00",
-    "type": "Stock"
-  }
-}
-INFO[2020-12-30T23:44:07.004-05:00] Re-allocating source assets to match target allocations
-INFO[2020-12-30T23:44:07.162-05:00] target portfolio:{
-  "AAPL": {
-    "allocation": "0.0000%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "0.00USD",
-    "name": "APPLE INC",
-    "order": {
-      "marketValue": "-3343.00USD",
-      "quantity": "-25.00"
-    },
-    "price": "133.72",
-    "quantity": "0.00",
-    "type": "Stock"
-  },
-  "AMZN": {
-    "allocation": "59.0747%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "13143.40USD",
-    "name": "AMAZON COM INC",
-    "order": {
-      "marketValue": "+13143.40USD",
-      "quantity": "+4.00"
-    },
-    "price": "3285.85",
-    "quantity": "4.00",
-    "type": "Stock"
-  },
-  "CAD": {
-    "allocation": "5.0000%",
-    "currency": "CAD",
-    "exchangeRate": "0.7822",
-    "marketValue": "1112.44USD",
-    "name": "CAD",
-    "order": {
-      "marketValue": "-6709.36USD",
-      "quantity": "-8577.77"
-    },
-    "price": "1.00",
-    "quantity": "1422.23",
-    "type": "currency"
-  },
-  "MSFT": {
-    "allocation": "0.0000%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "0.00USD",
-    "name": "MICROSOFT CORP",
-    "order": {
-      "marketValue": "-11084.00USD",
-      "quantity": "-50.00"
-    },
-    "price": "221.68",
-    "quantity": "0.00",
-    "type": "Stock"
-  },
-  "TSLA": {
-    "allocation": "34.3505%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "7642.58USD",
-    "name": "TESLA INC",
-    "order": {
-      "marketValue": "+7642.58USD",
-      "quantity": "+11.00"
-    },
-    "price": "694.78",
-    "quantity": "11.00",
-    "type": "Stock"
-  },
-  "USD": {
-    "allocation": "1.5748%",
-    "currency": "USD",
-    "exchangeRate": "1.0000",
-    "marketValue": "350.38USD",
-    "name": "USD",
-    "order": {
-      "marketValue": "+350.38USD",
-      "quantity": "+350.38"
-    },
-    "price": "1.00",
-    "quantity": "350.38",
-    "type": "currency"
-  }
-}
+$ STOCKER_API_KEY=<your_api_key> STOCKER_API_SERVER=alphavantage.co ./bin/stocker-darwin -rebalance ./examples/portfolio.json -currency CAD
 ```
