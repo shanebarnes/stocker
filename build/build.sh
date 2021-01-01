@@ -10,6 +10,8 @@ function backtrace() {
 set -euo errtrace
 trap backtrace ERR
 
+go env
+GOOS=$(go env GOOS)
 go vet -v ./...
-#go test -p 1 -v ./...
-go build -v cmd/stocker/stocker.go
+#go test -p 1 -v ./... -cover
+go build -v -o "bin/stocker-$GOOS" cmd/stocker/stocker.go

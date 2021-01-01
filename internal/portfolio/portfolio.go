@@ -134,6 +134,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		p.diffAssets(&p.Assets.Source, &p.Assets.Target)
 		p.copyAssetFixedToStrings(&p.Assets.Target)
 		log.Info("target portfolio:", GetPrettyString(p.Assets.Target))
+	        log.Info("Target assets total market value: ", funds.Round(2).StringN(2), p.currency)
 	} else {
 		err = fmt.Errorf("Invalid portfolio allocation total: %s", allocation.Round(2).StringN(2))
 	}
@@ -306,6 +307,7 @@ func (p *Portfolio) liquidate() (fp.Fixed, error) {
 
 	p.copyAssetFixedToStrings(&p.Assets.Source)
 	log.Info("source portfolio:", GetPrettyString(p.Assets.Source))
+	log.Info("Source assets total market value: ", cash.Round(2).StringN(2), p.currency)
 
 	return cash, err
 }
