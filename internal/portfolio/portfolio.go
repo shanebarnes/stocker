@@ -36,16 +36,16 @@ type order struct {
 }
 
 type Asset struct {
-	Alloc       string  `json:"allocation"`
-	Currency    string  `json:"currency"`
+	Alloc       string `json:"allocation"`
+	Currency    string `json:"currency"`
 	fp          fpAsset
-	Fxr         string  `json:"exchangeRate"`
-	MarketValue string  `json:"marketValue"`
-	Name        string  `json:"name"`
-	Order       *order  `json:"order,omitempty"`
-	Price       string  `json:"price"`
-	Qty         string  `json:"quantity"`
-	Type        string  `json:"type"`
+	Fxr         string `json:"exchangeRate"`
+	MarketValue string `json:"marketValue"`
+	Name        string `json:"name"`
+	Order       *order `json:"order,omitempty"`
+	Price       string `json:"price"`
+	Qty         string `json:"quantity"`
+	Type        string `json:"type"`
 }
 
 // TODO: Convert to struct and include total market value field
@@ -74,7 +74,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		cash.fp.Fxr = fp.NewF(1)
 	} else {
 		cash = Asset{
-			fp: fpAsset{Alloc: fp.NewF(0), Price: fp.NewF(1), Fxr: fp.NewF(1)},
+			fp:   fpAsset{Alloc: fp.NewF(0), Price: fp.NewF(1), Fxr: fp.NewF(1)},
 			Type: typeCurrency,
 		}
 	}
@@ -134,7 +134,7 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 		p.diffAssets(&p.Assets.Source, &p.Assets.Target)
 		p.copyAssetFixedToStrings(&p.Assets.Target)
 		log.Info("target portfolio:", GetPrettyString(p.Assets.Target))
-	        log.Info("Target assets total market value: ", funds.Round(2).StringN(2), p.currency)
+		log.Info("Target assets total market value: ", funds.Round(2).StringN(2), p.currency)
 	} else {
 		err = fmt.Errorf("Invalid portfolio allocation total: %s", allocation.Round(2).StringN(2))
 	}
@@ -144,12 +144,12 @@ func (p *Portfolio) allocate(funds fp.Fixed) error {
 
 func (p *Portfolio) copyAssetFixedToStrings(group *AssetGroup) {
 	for symbol, asset := range *group {
-		asset.Alloc       = asset.fp.Alloc.Round(4).StringN(4) + "%"
-		asset.Fxr         = asset.fp.Fxr.Round(4).StringN(4)
+		asset.Alloc = asset.fp.Alloc.Round(4).StringN(4) + "%"
+		asset.Fxr = asset.fp.Fxr.Round(4).StringN(4)
 		asset.MarketValue = asset.fp.MarketValue.Round(2).StringN(2) + p.currency
-		asset.Price       = asset.fp.Price.Round(2).StringN(2)
-		asset.Qty         = asset.fp.Qty.Round(2).StringN(2)
-		(*group)[symbol]  = asset
+		asset.Price = asset.fp.Price.Round(2).StringN(2)
+		asset.Qty = asset.fp.Qty.Round(2).StringN(2)
+		(*group)[symbol] = asset
 	}
 }
 
@@ -189,12 +189,12 @@ func (p *Portfolio) diffAssets(source, target *AssetGroup) {
 
 func (p *Portfolio) copyAssetStringsToFixed(group *AssetGroup) {
 	for i, asset := range *group {
-		asset.fp.Alloc       = newFixedFromString("alloc", asset.Alloc)
-		asset.fp.Fxr         = newFixedFromString("fxr", asset.Fxr)
+		asset.fp.Alloc = newFixedFromString("alloc", asset.Alloc)
+		asset.fp.Fxr = newFixedFromString("fxr", asset.Fxr)
 		asset.fp.MarketValue = newFixedFromString("mvp", asset.MarketValue)
-		asset.fp.Price       = newFixedFromString("price", asset.Price)
-		asset.fp.Qty         = newFixedFromString("qty", asset.Qty)
-		(*group)[i]          = asset
+		asset.fp.Price = newFixedFromString("price", asset.Price)
+		asset.fp.Qty = newFixedFromString("qty", asset.Qty)
+		(*group)[i] = asset
 	}
 }
 
@@ -259,6 +259,8 @@ func (p *Portfolio) initializeAsset(symbol string, asset *Asset) error {
 			if err == nil {
 				asset.fp.Fxr = ccy.Rates[p.currency]
 				//asset.fp.Fxr, err = p.getExchangeRate(search.Currency)
+			} else {
+				log.Debug("Error getting currency ", symbol, ": ", err)
 			}
 		}
 	} else {
@@ -351,7 +353,7 @@ func NewPortfolio(filename, apiKey, apiServer, oauthCredsFile string, oauthRefre
 	}
 
 	portfolio := Portfolio{
-		Api: api,
+		Api:      api,
 		currency: strings.ToUpper(currency),
 	}
 

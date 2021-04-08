@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"text/template"
+
+	"github.com/shanebarnes/stocker/internal/stock/api"
 )
 
 const (
@@ -53,7 +55,7 @@ func GetSymbolSearch(symbol, apiKey, apiServer string) (*SymbolSearchMatch, erro
 	url, err := createSymbolSearchUrl(symbol, apiKey, apiServer)
 	if err == nil {
 		var body []byte
-		if body, err = ApiGetResponseBody(url, apiKey); err == nil {
+		if body, err = api.GetApiResponseBody(url, apiKey, isApiResponseRetryable); err == nil {
 			search := symbolSearch{}
 			if err = json.Unmarshal(body, &search); err == nil {
 				if len(search.Symbols) > 0 {

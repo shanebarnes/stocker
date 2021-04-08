@@ -1,13 +1,15 @@
-package questrade
+package exchangerate
 
 import (
 	"bytes"
 	"encoding/json"
 	"text/template"
+
+	"github.com/shanebarnes/stocker/internal/stock/api"
 )
 
 const (
-	apiCurrencyExchangeRate = `https://api.exchangeratesapi.io/latest?base={{.FromCurrency}}&symbols={{.ToCurrency}}`
+	apiCurrencyExchangeRate = `https://api.exchangerate.host/latest?base={{.FromCurrency}}&source=imf&places=4&symbols={{.ToCurrency}}`
 )
 
 type tplCurrencyExchangeRate struct {
@@ -15,10 +17,17 @@ type tplCurrencyExchangeRate struct {
 	ToCurrency   string
 }
 
+type motd struct {
+	Message string `json:"msg"`
+	Url     string `json:"url"`
+}
+
 type ExchangeRate struct {
 	BaseSymbol string             `json:"base"`
 	Date       string             `json:"date"`
+	Motd       motd               `json:"motd"`
 	Rates      map[string]float64 `json:"rates"`
+	Success    bool               `json:"success"`
 }
 
 func createCurrencyExchangeRateUrl(fromCurrency, toCurrency string) (string, error) {
@@ -56,7 +65,7 @@ func GetCurrencyExchangeRateInfo(fromCurrency, toCurrency, apiKey string) (*Exch
 	url, err := createCurrencyExchangeRateUrl(fromCurrency, toCurrency)
 	if err == nil {
 		var body []byte
-		if body, err = ApiGetResponseBody(url, ""); err == nil {
+		if body, err = api.GetApiResponseBody(url, "", nil); err == nil {
 			er := ExchangeRate{}
 			if err = json.Unmarshal(body, &er); err == nil {
 				rate = &er

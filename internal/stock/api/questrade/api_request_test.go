@@ -11,6 +11,7 @@ import (
 )
 
 type RoundTripFunc func(req *http.Request) *http.Response
+
 func (fn RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return fn(req), nil
 }
@@ -22,17 +23,17 @@ func NewTestClient(fn RoundTripFunc) *http.Client {
 }
 
 func TestApiDefaultClient(t *testing.T) {
-	assert.NotNil(t, apiClient)
-	assert.Equal(t, api.DefaultClientTimeout, apiClient.Timeout)
+	assert.NotNil(t, api.Client)
+	assert.Equal(t, api.DefaultClientTimeout, api.Client.Timeout)
 }
 
 func TestApiGetResponseBody_NoError(t *testing.T) {
 	requestCount := 0
-	saveClient := apiClient
+	saveClient := api.Client
 	defer func() {
-		apiClient = saveClient
+		api.Client = saveClient
 	}()
-	apiClient = NewTestClient(func(req *http.Request) *http.Response{
+	api.Client = NewTestClient(func(req *http.Request) *http.Response {
 		requestCount++
 
 		assert.Equal(t, "https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", req.URL.String())
@@ -40,13 +41,13 @@ func TestApiGetResponseBody_NoError(t *testing.T) {
 		assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
 
 		return &http.Response{
-			Body: ioutil.NopCloser(bytes.NewBufferString("")),
-			Header: make(http.Header),
-			Status: http.StatusText(http.StatusOK),
+			Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+			Header:     make(http.Header),
+			Status:     http.StatusText(http.StatusOK),
 			StatusCode: http.StatusOK,
 		}
 	})
-	body, err := ApiGetResponseBody("https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", "AccessToken01")
+	body, err := api.GetApiResponseBody("https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", "AccessToken01", nil)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(body))
 	assert.Equal(t, 1, requestCount)
@@ -54,11 +55,11 @@ func TestApiGetResponseBody_NoError(t *testing.T) {
 
 func TestApiGetResponseBody_NonretryableError(t *testing.T) {
 	requestCount := 0
-	saveClient := apiClient
+	saveClient := api.Client
 	defer func() {
-		apiClient = saveClient
+		api.Client = saveClient
 	}()
-	apiClient = NewTestClient(func(req *http.Request) *http.Response{
+	api.Client = NewTestClient(func(req *http.Request) *http.Response {
 		requestCount++
 
 		assert.Equal(t, "https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", req.URL.String())
@@ -66,13 +67,13 @@ func TestApiGetResponseBody_NonretryableError(t *testing.T) {
 		assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
 
 		return &http.Response{
-			Body: ioutil.NopCloser(bytes.NewBufferString("Access token is invalid")),
-			Header: make(http.Header),
-			Status: http.StatusText(http.StatusUnauthorized),
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Access token is invalid")),
+			Header:     make(http.Header),
+			Status:     http.StatusText(http.StatusUnauthorized),
 			StatusCode: http.StatusUnauthorized,
 		}
 	})
-	_, err := ApiGetResponseBody("https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", "AccessToken01")
+	_, err := api.GetApiResponseBody("https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", "AccessToken01", nil)
 	assert.NotNil(t, err)
 	assert.Equal(t, "API response status code: 401, details: Access token is invalid", err.Error())
 	assert.Equal(t, 1, requestCount)
@@ -80,11 +81,11 @@ func TestApiGetResponseBody_NonretryableError(t *testing.T) {
 
 func TestApiGetResponseBody_RetryableError(t *testing.T) {
 	requestCount := 0
-	saveClient := apiClient
+	saveClient := api.Client
 	defer func() {
-		apiClient = saveClient
+		api.Client = saveClient
 	}()
-	apiClient = NewTestClient(func(req *http.Request) *http.Response{
+	api.Client = NewTestClient(func(req *http.Request) *http.Response {
 		requestCount++
 
 		assert.Equal(t, "https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", req.URL.String())
@@ -92,13 +93,13 @@ func TestApiGetResponseBody_RetryableError(t *testing.T) {
 		assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
 
 		return &http.Response{
-			Body: ioutil.NopCloser(bytes.NewBufferString("Something strange happened")),
-			Header: make(http.Header),
-			Status: http.StatusText(http.StatusInternalServerError),
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Something strange happened")),
+			Header:     make(http.Header),
+			Status:     http.StatusText(http.StatusInternalServerError),
 			StatusCode: http.StatusInternalServerError,
 		}
 	})
-	_, err := ApiGetResponseBody("https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", "AccessToken01")
+	_, err := api.GetApiResponseBody("https://api01.iq.questrade.com/v1/symbols/search?prefix=ACME", "AccessToken01", nil)
 	assert.NotNil(t, err)
 	assert.Equal(t, "API response status code: 500, details: Something strange happened", err.Error())
 	assert.Equal(t, api.DefaultRequestRetryLimit, requestCount)

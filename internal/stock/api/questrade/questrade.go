@@ -10,6 +10,7 @@ import (
 	fp "github.com/robaho/fixed"
 	"github.com/shanebarnes/stocker/internal/stock"
 	"github.com/shanebarnes/stocker/internal/stock/api"
+	"github.com/shanebarnes/stocker/internal/stock/api/exchangerate"
 )
 
 const (
@@ -17,8 +18,8 @@ const (
 )
 
 type qt struct {
-	apiKey     string
-	apiServer  string
+	apiKey    string
+	apiServer string
 	cache     *stock.Cache
 	creds     api.OAuthCredentials
 }
@@ -34,8 +35,8 @@ type redeemTokenResponse struct {
 func (q *qt) GetCurrency(currency, currencyTo string) (stock.Currency, error) {
 	ccy, err := q.cache.GetCurrency(currency, currencyTo)
 	if err != nil {
-		var xr *ExchangeRate
-		if xr, err = GetCurrencyExchangeRateInfo(currency, currencyTo, q.apiKey); err == nil {
+		var xr *exchangerate.ExchangeRate
+		if xr, err = exchangerate.GetCurrencyExchangeRateInfo(currency, currencyTo, ""); err == nil {
 			if _, exists := xr.Rates[currencyTo]; exists {
 				ccy.Currency = xr.BaseSymbol
 				ccy.Name = xr.BaseSymbol
@@ -85,7 +86,6 @@ func getServerHostname(server string) (string, error) {
 	return hostname, err
 }
 
-
 func (q *qt) GetSymbol(symbol string) (stock.Symbol, error) {
 	sym, err := q.cache.GetSymbol(symbol)
 	if err != nil {
@@ -114,10 +114,10 @@ func NewApiQuestrade(apiKey, apiServer string, creds api.OAuthCredentials) api.S
 	}
 
 	return &qt{
-		apiKey: apiKey,
+		apiKey:    apiKey,
 		apiServer: apiServer,
-		cache: stock.NewCache(),
-		creds: creds,
+		cache:     stock.NewCache(),
+		creds:     creds,
 	}
 }
 
@@ -126,16 +126,16 @@ func NewApiQuestrade(apiKey, apiServer string, creds api.OAuthCredentials) api.S
 //   https://www.questrade.com/api/documentation/security
 func (q *qt) RefreshCredentials() (*api.OAuthCredentials, error) {
 	var creds *api.OAuthCredentials
-	body, err := ApiGetResponseBody("https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token=" + q.creds.RefreshToken, "")
+	body, err := api.GetApiResponseBody("https://login.questrade.com/oauth2/token?grant_type=refresh_token&refresh_token="+q.creds.RefreshToken, "", isApiResponseRetryable)
 	if err == nil {
 		response := redeemTokenResponse{}
 		if err = json.Unmarshal(body, &response); err == nil {
 			q.creds = api.OAuthCredentials{
-				AccessToken: response.AccessToken,
-				ApiServer: response.ApiServer,
-				ExpiresIn: response.ExpiresIn,
+				AccessToken:  response.AccessToken,
+				ApiServer:    response.ApiServer,
+				ExpiresIn:    response.ExpiresIn,
 				RefreshToken: response.RefreshToken,
-				TokenType: response.TokenType,
+				TokenType:    response.TokenType,
 			}
 			creds = &q.creds
 

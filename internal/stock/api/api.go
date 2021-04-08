@@ -1,6 +1,11 @@
 package api
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -9,15 +14,25 @@ import (
 )
 
 const (
-	ApiKeyEnvName = "STOCKER_API_KEY"
+	ApiKeyEnvName    = "STOCKER_API_KEY"
 	ApiServerEnvName = "STOCKER_API_SERVER"
 
 	DefaultClientTimeout = time.Second * 4
 
 	DefaultRequestBackoffDelay = time.Millisecond * 125
 	DefaultRequestBackoffLimit = time.Second
-	DefaultRequestRetryLimit = 10
+	DefaultRequestRetryLimit   = 10
 )
+
+var Client *http.Client = &http.Client{
+	Timeout: DefaultClientTimeout,
+	Transport: &http.Transport{
+		DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+			dialer := net.Dialer{}
+			return dialer.DialContext(ctx, network, address)
+		},
+	},
+}
 
 type OAuthCredentials struct {
 	AccessToken  string
@@ -36,6 +51,37 @@ type StockApi interface {
 
 func GetApiKeyFromEnv() string {
 	return os.Getenv(ApiKeyEnvName)
+}
+
+func GetApiResponseBody(url, accessToken string, isRetryable func(*http.Response) bool) ([]byte, error) {
+	var body []byte
+
+	//fmt.Println("Making request to: ", url)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err == nil {
+		req.Header.Set("Content-Type", "application/json")
+		if len(accessToken) > 0 {
+			req.Header.Set("Authorization", "Bearer "+accessToken)
+		}
+
+		MakeApiRequestWithRetry(Client, req, func(res *http.Response, rerr error) bool {
+			retry := false
+			err = rerr
+			if err == nil {
+				body, err = ioutil.ReadAll(res.Body)
+				if res.StatusCode != http.StatusOK {
+					err = errors.New(fmt.Sprintf("API response status code: %d, details: %s", res.StatusCode, string(body)))
+					retry = (isRetryable != nil && isRetryable(res))
+				}
+			} else {
+				retry = IsErrorRetryable(err)
+			}
+			return retry
+		})
+	}
+
+	return body, err
 }
 
 func GetApiServerFromEnv() string {

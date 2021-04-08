@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"text/template"
+
+	"github.com/shanebarnes/stocker/internal/stock/api"
 )
 
 const (
@@ -62,7 +64,7 @@ func GetSymbolQuote(symbolId, apiKey, apiServer string) (*SymbolQuote, error) {
 	url, err := createSymbolQuoteUrl(symbolId, apiKey, apiServer)
 	if err == nil {
 		var body []byte
-		if body, err = ApiGetResponseBody(url, apiKey); err == nil {
+		if body, err = api.GetApiResponseBody(url, apiKey, isApiResponseRetryable); err == nil {
 			sq := symbolQuote{}
 			if err = json.Unmarshal(body, &sq); err == nil {
 				if len(sq.Quotes) > 0 {
