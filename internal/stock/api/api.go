@@ -7,10 +7,12 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"time"
 
 	"github.com/shanebarnes/stocker/internal/stock"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -99,12 +101,16 @@ func MakeApiRequestWithRetry(client *http.Client, req *http.Request, retryCb fun
 	}
 
 	for retry < retryLimit {
+		if buf, err := httputil.DumpRequest(req, true); err == nil {
+			log.Debug(string(buf))
+		}
+
 		res, err := client.Do(req)
-		defer func() {
-			if err == nil {
-				res.Body.Close()
+		if err == nil {
+			if buf, err := httputil.DumpResponse(res, true); err == nil {
+				log.Debug(string(buf))
 			}
-		}()
+		}
 
 		if retryCb(res, err) {
 			time.Sleep(backoff)

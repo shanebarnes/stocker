@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	apiCurrencyExchangeRate = `https://api.exchangerate.host/latest?base={{.FromCurrency}}&source=imf&places=4&symbols={{.ToCurrency}}`
+	apiCurrencyExchangeRate = `https://api.exchangerate.host/latest?base={{.FromCurrency}}&source=ecb&places=4&symbols={{.ToCurrency}}`
 )
 
 type tplCurrencyExchangeRate struct {

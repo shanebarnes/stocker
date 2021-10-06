@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        go_version: [1.15.x]
+        go_version: [1.16.x]
         os_version: [macos-latest, ubuntu-latest, windows-latest]
         include:
           - os_version: macos-latest
